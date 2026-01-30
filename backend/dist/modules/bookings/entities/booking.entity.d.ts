@@ -1,0 +1,33 @@
+import { BookingType, BookingStatus, CancellationReason } from '../../../common/enums';
+import { User } from '../../users/entities/user.entity';
+import { Department } from '../../departments/entities/department.entity';
+import { Vehicle } from '../../vehicles/entities/vehicle.entity';
+export declare class Booking {
+    id: string;
+    bookingCode: string;
+    requesterId: string;
+    requester: User;
+    departmentId: string;
+    department: Department;
+    bookingType: BookingType;
+    status: BookingStatus;
+    scheduledDate: Date;
+    scheduledTime: string;
+    endDate: Date;
+    purpose: string;
+    passengerCount: number;
+    notes: string;
+    assignedVehicleId: string;
+    assignedVehicle: Vehicle;
+    assignedDriverId: string;
+    assignedDriver: User;
+    estimatedKm: number;
+    actualKm: number;
+    cancelledAt: Date;
+    cancelledById: string;
+    cancelledBy: User;
+    cancellationReason: CancellationReason;
+    cancellationNotes: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
