@@ -1,0 +1,866 @@
+# Database Models
+
+This document describes the PostgreSQL data models for the MSM Car Booking System.
+
+## Tech Stack
+
+- **Backend**: NestJS with TypeORM
+- **Database**: PostgreSQL
+- **Frontend**: React
+- **Infrastructure**: Docker
+
+---
+
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    %% ==================== CORE ENTITIES ====================
+    departments {
+        uuid id PK
+        varchar name
+        varchar code UK
+        varchar cost_center
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    users {
+        uuid id PK
+        varchar email UK
+        varchar password_hash
+        varchar full_name
+        varchar phone
+        user_role role
+        user_segment user_segment
+        uuid department_id FK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    vehicles {
+        uuid id PK
+        varchar license_plate UK
+        varchar brand
+        varchar model
+        int year
+        int capacity
+        vehicle_type vehicle_type
+        vehicle_status status
+        decimal current_odometer_km
+        varchar gps_device_id
+        uuid assigned_driver_id FK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    km_quotas {
+        uuid id PK
+        uuid vehicle_id FK
+        date month
+        decimal quota_km
+        decimal tolerance_km
+        decimal used_km
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    pickup_points {
+        uuid id PK
+        varchar name
+        varchar address
+        decimal latitude
+        decimal longitude
+        point_type point_type
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ==================== BOOKING ENTITIES ====================
+    bookings {
+        uuid id PK
+        varchar booking_code UK
+        uuid requester_id FK
+        uuid department_id FK
+        booking_type booking_type
+        booking_status status
+        date scheduled_date
+        time scheduled_time
+        date end_date
+        text purpose
+        int passenger_count
+        text notes
+        uuid assigned_vehicle_id FK
+        uuid assigned_driver_id FK
+        decimal estimated_km
+        decimal actual_km
+        timestamp cancelled_at
+        uuid cancelled_by FK
+        cancellation_reason cancellation_reason
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    trip_stops {
+        uuid id PK
+        uuid booking_id FK
+        uuid pickup_point_id FK
+        varchar custom_address
+        decimal latitude
+        decimal longitude
+        int stop_order
+        stop_type stop_type
+        time scheduled_time
+        timestamp actual_arrival
+        timestamp created_at
+    }
+
+    external_dispatches {
+        uuid id PK
+        uuid booking_id FK
+        external_provider provider
+        varchar provider_booking_id
+        varchar provider_driver_name
+        decimal estimated_cost
+        decimal actual_cost
+        text dispatch_reason
+        timestamp dispatched_at
+        timestamp completed_at
+    }
+
+    %% ==================== GPS & TRACKING ====================
+    gps_locations {
+        uuid id PK
+        uuid vehicle_id FK
+        decimal latitude
+        decimal longitude
+        decimal speed_kmh
+        decimal heading
+        timestamp recorded_at
+    }
+
+    odometer_logs {
+        uuid id PK
+        uuid vehicle_id FK
+        uuid booking_id FK
+        decimal reading_km
+        reading_type reading_type
+        timestamp recorded_at
+        uuid recorded_by FK
+    }
+
+    %% ==================== DRIVER MANAGEMENT ====================
+    driver_shifts {
+        uuid id PK
+        uuid driver_id FK
+        date shift_date
+        time start_time
+        time end_time
+        shift_status status
+        timestamp actual_start
+        timestamp actual_end
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ==================== VEHICLE MAINTENANCE ====================
+    vehicle_maintenance {
+        uuid id PK
+        uuid vehicle_id FK
+        maintenance_type maintenance_type
+        text description
+        decimal odometer_at_service
+        decimal cost
+        varchar vendor_name
+        timestamp started_at
+        timestamp completed_at
+        decimal next_service_km
+        date next_service_date
+        uuid performed_by FK
+    }
+
+    %% ==================== NOTIFICATIONS ====================
+    notifications {
+        uuid id PK
+        uuid user_id FK
+        uuid booking_id FK
+        notification_channel channel
+        notification_type notification_type
+        varchar title
+        text message
+        notification_status status
+        timestamp sent_at
+        timestamp created_at
+    }
+
+    %% ==================== REPORTING & CONFIG ====================
+    trip_reports {
+        uuid id PK
+        uuid booking_id FK
+        uuid vehicle_id FK
+        uuid driver_id FK
+        uuid requester_id FK
+        uuid department_id FK
+        date trip_date
+        decimal start_km
+        decimal end_km
+        decimal total_km
+        int duration_minutes
+        decimal cost_estimate
+        timestamp created_at
+    }
+
+    system_configs {
+        uuid id PK
+        varchar key UK
+        jsonb value
+        text description
+        uuid updated_by FK
+        timestamp updated_at
+    }
+
+    audit_logs {
+        uuid id PK
+        varchar table_name
+        uuid record_id
+        varchar action
+        jsonb old_values
+        jsonb new_values
+        text changed_fields
+        uuid changed_by FK
+        timestamp changed_at
+    }
+
+    booking_sequences {
+        date date_key PK
+        int last_seq
+    }
+
+    %% ==================== RELATIONSHIPS ====================
+    departments ||--o{ users : "employs"
+    departments ||--o{ bookings : "pays_for"
+    departments ||--o{ trip_reports : "billed_to"
+
+    users ||--o{ vehicles : "assigned_driver"
+    users ||--o{ bookings : "requests"
+    users ||--o{ bookings : "drives"
+    users ||--o{ bookings : "cancels"
+    users ||--o{ notifications : "receives"
+    users ||--o{ odometer_logs : "records"
+    users ||--o{ driver_shifts : "works"
+    users ||--o{ vehicle_maintenance : "performs"
+    users ||--o{ system_configs : "updates"
+    users ||--o{ audit_logs : "changes"
+    users ||--o{ trip_reports : "driver_report"
+    users ||--o{ trip_reports : "requester_report"
+
+    vehicles ||--o{ km_quotas : "has_quota"
+    vehicles ||--o{ bookings : "assigned_to"
+    vehicles ||--o{ gps_locations : "tracked_by"
+    vehicles ||--o{ odometer_logs : "logged"
+    vehicles ||--o{ vehicle_maintenance : "serviced"
+    vehicles ||--o{ trip_reports : "used_in"
+
+    bookings ||--o{ trip_stops : "contains"
+    bookings ||--o{ notifications : "triggers"
+    bookings ||--o{ odometer_logs : "recorded_for"
+    bookings ||--o| trip_reports : "generates"
+    bookings ||--o| external_dispatches : "redirected_to"
+
+    pickup_points ||--o{ trip_stops : "location_for"
+```
+
+### Diagram Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| `PK` | Primary Key |
+| `FK` | Foreign Key |
+| `UK` | Unique Key |
+| `\|\|--o{` | One-to-Many |
+| `\|\|--o\|` | One-to-One (optional) |
+
+### Entity Groups
+
+#### Core Entities
+| Table | Description |
+|-------|-------------|
+| `departments` | Organizational units for cost tracking |
+| `users` | All system users (admins, drivers, employees) |
+| `vehicles` | Fleet vehicles with GPS tracking |
+| `km_quotas` | Monthly kilometer quotas per vehicle |
+| `pickup_points` | Predefined and custom locations |
+
+#### Booking System
+| Table | Description |
+|-------|-------------|
+| `bookings` | Main reservation records |
+| `trip_stops` | Individual stops within bookings |
+| `external_dispatches` | Records for Grab/Taxi redirects |
+| `booking_sequences` | Thread-safe booking code generation |
+
+#### Tracking & GPS
+| Table | Description |
+|-------|-------------|
+| `gps_locations` | Real-time vehicle positions (partitioned by month) |
+| `odometer_logs` | Distance readings for trips |
+
+#### Operations
+| Table | Description |
+|-------|-------------|
+| `driver_shifts` | Driver schedules and availability |
+| `vehicle_maintenance` | Service and repair history |
+| `notifications` | Multi-channel notification queue |
+
+#### Reporting & Audit
+| Table | Description |
+|-------|-------------|
+| `trip_reports` | Denormalized analytics data |
+| `system_configs` | JSONB key-value configuration |
+| `audit_logs` | Change tracking for critical tables |
+
+---
+
+## Core Entities
+
+### Users
+
+Stores all system users including employees, drivers, and administrators.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| email | VARCHAR | UNIQUE, NOT NULL | User email address |
+| password_hash | VARCHAR | NOT NULL | Hashed password |
+| full_name | VARCHAR | NOT NULL | User's full name |
+| phone | VARCHAR | | Contact phone number |
+| role | ENUM | NOT NULL | User role (see below) |
+| user_segment | ENUM | | User segment type |
+| department_id | UUID | FK → departments | Associated department |
+| is_active | BOOLEAN | DEFAULT true | Account status |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Role Enum Values:**
+- `ADMIN` - System administrator
+- `PIC` - Person In Charge
+- `GA` - General Affairs
+- `DRIVER` - Vehicle driver
+- `EMPLOYEE` - Regular employee
+
+**User Segment Enum Values:**
+- `DAILY` - SIC users with fixed routes
+- `SOMETIMES` - Business trippers with occasional bookings
+
+---
+
+### Departments
+
+Organizational departments for cost center tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| name | VARCHAR | NOT NULL | Department name |
+| code | VARCHAR | UNIQUE, NOT NULL | Department code |
+| cost_center | VARCHAR | | Cost center identifier |
+| is_active | BOOLEAN | DEFAULT true | Department status |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+---
+
+### Vehicles
+
+Fleet vehicles available for booking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| license_plate | VARCHAR | UNIQUE, NOT NULL | Vehicle plate number |
+| brand | VARCHAR | NOT NULL | Vehicle brand |
+| model | VARCHAR | NOT NULL | Vehicle model |
+| year | INT | | Manufacturing year |
+| capacity | INT | NOT NULL | Passenger capacity (seats) |
+| vehicle_type | ENUM | NOT NULL | Type of vehicle |
+| status | ENUM | NOT NULL | Current status |
+| current_odometer_km | DECIMAL | | Current odometer reading |
+| gps_device_id | VARCHAR | | GPS tracker device ID |
+| assigned_driver_id | UUID | FK → users | Default assigned driver |
+| is_active | BOOLEAN | DEFAULT true | Vehicle active status |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Vehicle Type Enum Values:**
+- `SEDAN` - Standard sedan
+- `SUV` - Sport utility vehicle
+- `VAN` - Passenger van
+- `BUS` - Bus/minibus
+
+**Status Enum Values:**
+- `AVAILABLE` - Ready for booking
+- `IN_USE` - Currently on a trip
+- `MAINTENANCE` - Under maintenance
+- `INACTIVE` - Not in service
+
+---
+
+### KM Quotas
+
+Monthly kilometer quotas per vehicle.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Associated vehicle |
+| month | DATE | NOT NULL | First day of the month |
+| quota_km | DECIMAL | NOT NULL | Monthly quota in kilometers |
+| tolerance_km | DECIMAL | | Allowed tolerance over quota |
+| used_km | DECIMAL | DEFAULT 0 | Kilometers used this month |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Unique Constraint:** `UNIQUE(vehicle_id, month)`
+
+---
+
+### Pickup Points
+
+Predefined and custom pickup/drop-off locations.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| name | VARCHAR | NOT NULL | Location name |
+| address | VARCHAR | NOT NULL | Full address |
+| latitude | DECIMAL | | GPS latitude |
+| longitude | DECIMAL | | GPS longitude |
+| point_type | ENUM | NOT NULL | Type of pickup point |
+| is_active | BOOLEAN | DEFAULT true | Location active status |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Point Type Enum Values:**
+- `FIXED` - Predefined office locations
+- `FLEXIBLE` - Custom user-defined locations
+
+---
+
+## Booking & Trip Entities
+
+### Bookings
+
+Main booking/reservation records.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_code | VARCHAR | UNIQUE, NOT NULL | Human-readable booking code |
+| requester_id | UUID | FK → users, NOT NULL | User who made the booking |
+| department_id | UUID | FK → departments | Department for cost allocation |
+| booking_type | ENUM | NOT NULL | Type of booking |
+| status | ENUM | NOT NULL | Current booking status |
+| scheduled_date | DATE | NOT NULL | Scheduled trip date |
+| scheduled_time | TIME | NOT NULL | Scheduled trip time |
+| end_date | DATE | | End date for block schedules |
+| purpose | TEXT | | Trip purpose/reason |
+| passenger_count | INT | NOT NULL | Number of passengers |
+| notes | TEXT | | Additional notes |
+| assigned_vehicle_id | UUID | FK → vehicles | Assigned vehicle |
+| assigned_driver_id | UUID | FK → users | Assigned driver |
+| estimated_km | DECIMAL | | Estimated trip distance |
+| actual_km | DECIMAL | | Actual trip distance |
+| cancelled_at | TIMESTAMP | | When booking was cancelled |
+| cancelled_by | UUID | FK → users | User who cancelled |
+| cancellation_reason | ENUM | | Reason for cancellation |
+| cancellation_notes | TEXT | | Additional cancellation details |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Booking Type Enum Values:**
+- `SINGLE_TRIP` - One-way or round trip
+- `MULTI_STOP` - Trip with multiple stops
+- `BLOCK_SCHEDULE` - Recurring/block booking
+
+**Status Enum Values:**
+- `PENDING` - Awaiting confirmation
+- `CONFIRMED` - Booking confirmed
+- `ASSIGNED` - Vehicle and driver assigned
+- `IN_PROGRESS` - Trip currently active
+- `COMPLETED` - Trip completed
+- `CANCELLED` - Booking cancelled
+- `REDIRECTED_EXTERNAL` - Redirected to external provider
+
+**Cancellation Reason Enum Values:**
+- `USER_REQUEST` - User cancelled their own booking
+- `NO_VEHICLE_AVAILABLE` - No suitable vehicle available
+- `NO_DRIVER_AVAILABLE` - No driver available
+- `QUOTA_EXCEEDED` - KM quota exceeded
+- `VEHICLE_BREAKDOWN` - Vehicle had mechanical issue
+- `SCHEDULE_CONFLICT` - Scheduling conflict
+- `WEATHER` - Adverse weather conditions
+- `EMERGENCY` - User emergency
+- `DUPLICATE` - Duplicate booking
+- `OTHER` - Other reason (see notes)
+
+---
+
+### Trip Stops
+
+Individual stops within a booking (multi-stop support).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, NOT NULL | Parent booking |
+| pickup_point_id | UUID | FK → pickup_points | Predefined pickup point |
+| custom_address | VARCHAR | | Custom address if flexible |
+| latitude | DECIMAL | | GPS latitude |
+| longitude | DECIMAL | | GPS longitude |
+| stop_order | INT | NOT NULL | Order of stop in trip |
+| stop_type | ENUM | NOT NULL | Type of stop |
+| scheduled_time | TIME | | Scheduled arrival time |
+| actual_arrival | TIMESTAMP | | Actual arrival timestamp |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+
+**Stop Type Enum Values:**
+- `PICKUP` - Passenger pickup
+- `DROP` - Passenger drop-off
+- `STOP` - Intermediate stop
+
+---
+
+### External Dispatches
+
+Records when bookings are redirected to external providers (Grab/Taxi).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, NOT NULL | Related booking |
+| provider | ENUM | NOT NULL | External provider |
+| provider_booking_id | VARCHAR | | Provider's reference number |
+| provider_driver_name | VARCHAR | | Driver name from provider |
+| provider_vehicle_info | VARCHAR | | Vehicle info from provider |
+| provider_phone | VARCHAR | | Contact phone number |
+| estimated_cost | DECIMAL | | Estimated cost |
+| actual_cost | DECIMAL | | Actual cost charged |
+| dispatch_reason | TEXT | NOT NULL | Why internal vehicle wasn't used |
+| dispatched_at | TIMESTAMP | NOT NULL | When dispatched |
+| completed_at | TIMESTAMP | | When trip completed |
+| notes | TEXT | | Additional notes |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+
+**External Provider Enum Values:**
+- `GRAB` - Grab ride-hailing
+- `GOJEK` - Gojek ride-hailing
+- `BE` - Be ride-hailing
+- `TAXI_MAI_LINH` - Mai Linh Taxi
+- `TAXI_VINASUN` - Vinasun Taxi
+- `OTHER` - Other provider
+
+---
+
+## GPS & Tracking
+
+### GPS Locations
+
+Real-time vehicle position tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Tracked vehicle |
+| latitude | DECIMAL | NOT NULL | GPS latitude |
+| longitude | DECIMAL | NOT NULL | GPS longitude |
+| speed_kmh | DECIMAL | | Current speed in km/h |
+| heading | DECIMAL | | Direction in degrees |
+| recorded_at | TIMESTAMP | NOT NULL | Recording timestamp |
+
+**Index:** `INDEX(vehicle_id, recorded_at)`
+
+---
+
+### Odometer Logs
+
+Vehicle odometer readings for distance tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Vehicle |
+| booking_id | UUID | FK → bookings | Associated booking |
+| reading_km | DECIMAL | NOT NULL | Odometer reading |
+| reading_type | ENUM | NOT NULL | Type of reading |
+| recorded_at | TIMESTAMP | NOT NULL | Recording timestamp |
+| recorded_by | UUID | FK → users | User who recorded |
+
+**Reading Type Enum Values:**
+- `TRIP_START` - Reading at trip start
+- `TRIP_END` - Reading at trip end
+- `DAILY_CHECK` - Daily maintenance check
+
+---
+
+## Notifications
+
+### Notifications
+
+System notifications sent to users.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| user_id | UUID | FK → users, NOT NULL | Recipient user |
+| booking_id | UUID | FK → bookings | Related booking |
+| channel | ENUM | NOT NULL | Notification channel |
+| notification_type | ENUM | NOT NULL | Type of notification |
+| title | VARCHAR | NOT NULL | Notification title |
+| message | TEXT | NOT NULL | Notification content |
+| status | ENUM | NOT NULL | Delivery status |
+| sent_at | TIMESTAMP | | When notification was sent |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+
+**Channel Enum Values:**
+- `APP_PUSH` - Mobile app push notification
+- `AUTO_CALL` - Automated phone call
+- `SMS` - Text message
+
+**Notification Type Enum Values:**
+- `BOOKING_CONFIRMED` - Booking confirmation
+- `VEHICLE_ARRIVING` - Vehicle en route
+- `TRIP_STARTED` - Trip has begun
+- `TRIP_COMPLETED` - Trip finished
+- `BOOKING_CANCELLED` - Booking was cancelled
+
+**Status Enum Values:**
+- `PENDING` - Not yet sent
+- `SENT` - Sent to provider
+- `DELIVERED` - Confirmed delivered
+- `FAILED` - Delivery failed
+
+---
+
+## Operations
+
+### Driver Shifts
+
+Driver work schedules and availability tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| driver_id | UUID | FK → users, NOT NULL | Driver user |
+| shift_date | DATE | NOT NULL | Date of shift |
+| start_time | TIME | NOT NULL | Shift start time |
+| end_time | TIME | NOT NULL | Shift end time |
+| status | ENUM | NOT NULL | Shift status |
+| actual_start | TIMESTAMP | | Actual clock-in time |
+| actual_end | TIMESTAMP | | Actual clock-out time |
+| notes | TEXT | | Additional notes |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Unique Constraint:** `UNIQUE(driver_id, shift_date, start_time)`
+
+**Shift Status Enum Values:**
+- `SCHEDULED` - Shift is planned
+- `ACTIVE` - Driver is currently on shift
+- `COMPLETED` - Shift ended normally
+- `ABSENT` - Driver was absent
+- `CANCELLED` - Shift was cancelled
+
+---
+
+### Vehicle Maintenance
+
+Vehicle service and repair history.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Vehicle |
+| maintenance_type | ENUM | NOT NULL | Type of maintenance |
+| description | TEXT | NOT NULL | Description of work |
+| odometer_at_service | DECIMAL | | Odometer at time of service |
+| cost | DECIMAL | | Cost of service |
+| vendor_name | VARCHAR | | Service provider name |
+| started_at | TIMESTAMP | NOT NULL | When service started |
+| completed_at | TIMESTAMP | | When service completed |
+| next_service_km | DECIMAL | | Recommended next service odometer |
+| next_service_date | DATE | | Recommended next service date |
+| performed_by | UUID | FK → users | User who performed/logged |
+| notes | TEXT | | Additional notes |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+
+**Maintenance Type Enum Values:**
+- `SCHEDULED` - Regular scheduled maintenance
+- `REPAIR` - Repair after breakdown
+- `INSPECTION` - Safety inspection
+- `TIRE_SERVICE` - Tire rotation/replacement
+- `OIL_CHANGE` - Oil and filter change
+- `CLEANING` - Interior/exterior cleaning
+- `OTHER` - Other maintenance
+
+---
+
+## Reporting & Audit
+
+### Trip Reports
+
+Denormalized trip data for reporting and analytics.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, NOT NULL | Source booking |
+| vehicle_id | UUID | FK → vehicles | Vehicle used |
+| driver_id | UUID | FK → users | Driver |
+| requester_id | UUID | FK → users | Requester |
+| department_id | UUID | FK → departments | Department |
+| trip_date | DATE | NOT NULL | Date of trip |
+| start_km | DECIMAL | | Starting odometer |
+| end_km | DECIMAL | | Ending odometer |
+| total_km | DECIMAL | | Total distance |
+| duration_minutes | INT | | Trip duration |
+| cost_estimate | DECIMAL | | Estimated cost |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+
+---
+
+### System Configs
+
+Key-value configuration storage.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| key | VARCHAR | UNIQUE, NOT NULL | Configuration key |
+| value | JSONB | NOT NULL | Configuration value |
+| description | TEXT | | Description of config |
+| updated_by | UUID | FK → users | Last updated by |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Example Configurations:**
+```json
+{
+  "km_tolerance_limit": 50,
+  "auto_dispatch_enabled": true,
+  "notification_channels": ["APP_PUSH", "AUTO_CALL"]
+}
+```
+
+---
+
+### Audit Logs
+
+Comprehensive audit trail for tracking changes to critical tables.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| table_name | VARCHAR | NOT NULL | Name of table that changed |
+| record_id | UUID | NOT NULL | ID of record that changed |
+| action | VARCHAR | NOT NULL | INSERT, UPDATE, or DELETE |
+| old_values | JSONB | | Previous values (UPDATE/DELETE) |
+| new_values | JSONB | | New values (INSERT/UPDATE) |
+| changed_fields | TEXT[] | | List of fields that changed |
+| changed_by | UUID | FK → users | User who made the change |
+| changed_at | TIMESTAMP | DEFAULT now() | When change occurred |
+| session_user_name | TEXT | | Database session user |
+| client_ip | INET | | Client IP address |
+
+**Indexes:**
+- `INDEX(table_name, record_id)` - Find history for specific record
+- `INDEX(changed_at DESC)` - Recent changes
+- `INDEX(changed_by)` - Changes by user
+
+---
+
+### Booking Sequences
+
+Thread-safe booking code sequence tracking to prevent race conditions.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| date_key | DATE | PK | Date for sequence |
+| last_seq | INTEGER | NOT NULL, DEFAULT 0 | Last used sequence number |
+
+**Usage:** Booking codes are generated as `MSM-YYYYMMDD-XXXX` where XXXX is the daily sequence.
+
+---
+
+## Design Decisions
+
+1. **No Guest Booking**: All bookings require employee accounts for proper cost allocation and tracking.
+
+2. **UUID Primary Keys**: All tables use UUID for primary keys to support distributed systems and prevent enumeration attacks.
+
+3. **Soft Deletes**: Using `is_active` flags instead of hard deletes to maintain referential integrity and audit trails.
+
+4. **Denormalized Reporting**: `trip_reports` table provides pre-aggregated data for fast reporting queries.
+
+5. **JSONB for Config**: Flexible configuration storage using PostgreSQL JSONB for easy extension.
+
+6. **GPS Time-Series Data**: `gps_locations` partitioned by month for high-volume writes and efficient data retention.
+
+7. **Booking Code Race Safety**: `booking_sequences` table with UPSERT pattern prevents duplicate codes under concurrent inserts.
+
+8. **Status State Machine**: Booking status transitions are validated by trigger to prevent invalid states (e.g., CANCELLED → IN_PROGRESS).
+
+9. **Comprehensive Audit Trail**: `audit_logs` table automatically captures all changes to critical tables with before/after values.
+
+10. **External Provider Tracking**: `external_dispatches` records when bookings are fulfilled by Grab/Taxi for cost analysis.
+
+---
+
+## Enum Types Reference
+
+### User & Access
+```sql
+user_role: ADMIN, PIC, GA, DRIVER, EMPLOYEE
+user_segment: DAILY, SOMETIMES
+```
+
+### Vehicles
+```sql
+vehicle_type: SEDAN, SUV, VAN, BUS
+vehicle_status: AVAILABLE, IN_USE, MAINTENANCE, INACTIVE
+```
+
+### Locations
+```sql
+point_type: FIXED, FLEXIBLE
+```
+
+### Bookings
+```sql
+booking_type: SINGLE_TRIP, MULTI_STOP, BLOCK_SCHEDULE
+booking_status: PENDING, CONFIRMED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED, REDIRECTED_EXTERNAL
+stop_type: PICKUP, DROP, STOP
+cancellation_reason: USER_REQUEST, NO_VEHICLE_AVAILABLE, NO_DRIVER_AVAILABLE, QUOTA_EXCEEDED,
+                     VEHICLE_BREAKDOWN, SCHEDULE_CONFLICT, WEATHER, EMERGENCY, DUPLICATE, OTHER
+```
+
+### External Providers
+```sql
+external_provider: GRAB, GOJEK, BE, TAXI_MAI_LINH, TAXI_VINASUN, OTHER
+```
+
+### Operations
+```sql
+reading_type: TRIP_START, TRIP_END, DAILY_CHECK
+shift_status: SCHEDULED, ACTIVE, COMPLETED, ABSENT, CANCELLED
+maintenance_type: SCHEDULED, REPAIR, INSPECTION, TIRE_SERVICE, OIL_CHANGE, CLEANING, OTHER
+```
+
+### Notifications
+```sql
+notification_channel: APP_PUSH, AUTO_CALL, SMS
+notification_type: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED
+notification_status: PENDING, SENT, DELIVERED, FAILED
+```
