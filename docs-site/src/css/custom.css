@@ -1,0 +1,280 @@
+/**
+ * xTMS Documentation Custom Styles
+ * Glassmorphism theme with Trust Blue primary color
+ */
+
+/* Light theme variables */
+:root {
+  /* Trust Blue primary color palette */
+  --ifm-color-primary: #2563eb;
+  --ifm-color-primary-dark: #1d4ed8;
+  --ifm-color-primary-darker: #1e40af;
+  --ifm-color-primary-darkest: #1e3a8a;
+  --ifm-color-primary-light: #3b82f6;
+  --ifm-color-primary-lighter: #60a5fa;
+  --ifm-color-primary-lightest: #93c5fd;
+
+  /* Typography */
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ifm-heading-font-family: 'Inter', system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* Code highlighting */
+  --docusaurus-highlighted-code-line-bg: rgba(37, 99, 235, 0.1);
+
+  /* Glassmorphism variables */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  --glass-blur: blur(10px);
+
+  /* Layout */
+  --ifm-container-width-xl: 1400px;
+  --ifm-spacing-horizontal: 1.5rem;
+
+  /* Navbar */
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-navbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  /* Footer */
+  --ifm-footer-background-color: #1e293b;
+  --ifm-footer-color: #e2e8f0;
+}
+
+/* Dark theme variables */
+[data-theme='dark'] {
+  --ifm-color-primary: #60a5fa;
+  --ifm-color-primary-dark: #3b82f6;
+  --ifm-color-primary-darker: #2563eb;
+  --ifm-color-primary-darkest: #1d4ed8;
+  --ifm-color-primary-light: #93c5fd;
+  --ifm-color-primary-lighter: #bfdbfe;
+  --ifm-color-primary-lightest: #dbeafe;
+
+  --docusaurus-highlighted-code-line-bg: rgba(96, 165, 250, 0.2);
+
+  /* Dark glassmorphism */
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* Navbar */
+  --ifm-navbar-background-color: rgba(15, 23, 42, 0.9);
+
+  /* Footer */
+  --ifm-footer-background-color: #0f172a;
+}
+
+/* Glassmorphism navbar */
+.navbar {
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Sidebar styling */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ifm-toc-border-color);
+}
+
+/* Doc page content */
+.theme-doc-markdown {
+  max-width: 100%;
+}
+
+/* Code blocks styling */
+.prism-code {
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+pre {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Inline code styling */
+code {
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.9em;
+}
+
+/* Table styling */
+table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+table th {
+  background-color: var(--ifm-color-primary);
+  color: white;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+}
+
+[data-theme='dark'] table th {
+  background-color: var(--ifm-color-primary-darker);
+}
+
+table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--ifm-table-border-color);
+}
+
+table tr:hover td {
+  background-color: var(--ifm-hover-overlay);
+}
+
+/* Admonition/alert styling */
+.alert {
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.alert--info {
+  --ifm-alert-background-color: rgba(37, 99, 235, 0.1);
+  --ifm-alert-border-color: var(--ifm-color-primary);
+}
+
+.alert--warning {
+  --ifm-alert-background-color: rgba(245, 158, 11, 0.1);
+}
+
+.alert--danger {
+  --ifm-alert-background-color: rgba(239, 68, 68, 0.1);
+}
+
+.alert--success {
+  --ifm-alert-background-color: rgba(34, 197, 94, 0.1);
+}
+
+/* Mermaid diagram styling */
+.docusaurus-mermaid-container {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--glass-bg);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Search styling */
+.DocSearch-Button {
+  border-radius: 8px !important;
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* Hero section for homepage */
+.hero {
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary-lightest) 0%,
+    var(--ifm-color-primary-light) 100%
+  );
+}
+
+[data-theme='dark'] .hero {
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary-darkest) 0%,
+    var(--ifm-color-primary-darker) 100%
+  );
+}
+
+/* Button styling */
+.button--primary {
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary) 0%,
+    var(--ifm-color-primary-dark) 100%
+  );
+  border: none;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s ease;
+}
+
+.button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+}
+
+/* Table of contents */
+.table-of-contents__link--active {
+  font-weight: 600;
+}
+
+/* Breadcrumbs */
+.breadcrumbs__link {
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+}
+
+.breadcrumbs__link:hover {
+  background: var(--ifm-hover-overlay);
+}
+
+/* Footer links */
+.footer__link-item:hover {
+  color: var(--ifm-color-primary-light);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background: var(--ifm-color-primary-lighter);
+  color: var(--ifm-color-primary-darkest);
+}
+
+[data-theme='dark'] ::selection {
+  background: var(--ifm-color-primary-darker);
+  color: white;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 996px) {
+  .navbar__items {
+    gap: 0.5rem;
+  }
+
+  .theme-doc-sidebar-container {
+    border-right: none;
+  }
+}
+
+/* Pagination styling */
+.pagination-nav__link {
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  transition: all 0.2s ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+/* Edit this page link */
+.theme-edit-this-page {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ifm-color-primary);
+}
+
+/* Last updated info */
+.theme-last-updated {
+  font-style: italic;
+  color: var(--ifm-color-emphasis-600);
+}
