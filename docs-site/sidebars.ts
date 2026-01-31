@@ -9,6 +9,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'system-workflows',
+      label: 'System Workflows',
+    },
+    {
+      type: 'doc',
       id: 'database-models',
       label: 'Database Models',
     },

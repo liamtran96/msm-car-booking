@@ -1,0 +1,30 @@
+{
+  "sidebar.docsSidebar.doc.Business Flows": {
+    "message": "Quy trình nghiệp vụ",
+    "description": "The label for doc Business Flows in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.System Workflows": {
+    "message": "Luồng hệ thống",
+    "description": "The label for doc System Workflows in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.Database Models": {
+    "message": "Mô hình CSDL",
+    "description": "The label for doc Database Models in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.DevOps": {
+    "message": "DevOps",
+    "description": "The label for category DevOps in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Backend": {
+    "message": "Backend",
+    "description": "The label for category Backend in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Frontend": {
+    "message": "Frontend",
+    "description": "The label for category Frontend in sidebar docsSidebar"
+  },
+  "version.label": {
+    "message": "Phiên bản tiếp theo 🚧",
+    "description": "The label for version current"
+  }
+}

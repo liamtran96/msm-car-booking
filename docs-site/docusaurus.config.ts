@@ -3,34 +3,34 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'xTMS Documentation',
-  tagline: 'Comprehensive Truck Transport Management System',
-  favicon: 'img/favicon.ico',
+  title: "MSM-CAR-BOOKING Documentation",
+  tagline: "Comprehensive Truck Transport Management System",
+  favicon: "img/favicon.ico",
 
   future: {
     v4: true,
   },
 
-  url: 'https://xtms-docs.vercel.app',
-  baseUrl: '/',
+  url: "https://MSM-CAR-BOOKING-docs.vercel.app",
+  baseUrl: "/",
 
-  organizationName: 'xtms',
-  projectName: 'xtms-docs',
+  organizationName: "MSM-CAR-BOOKING",
+  projectName: "MSM-CAR-BOOKING-docs",
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: "throw",
 
-  // Vietnamese as default with English support
+  // English as default with Vietnamese support
   i18n: {
-    defaultLocale: 'vi',
-    locales: ['vi', 'en'],
+    defaultLocale: "en",
+    locales: ["en", "vi"],
     localeConfigs: {
       vi: {
-        label: 'Tiếng Việt',
-        htmlLang: 'vi-VN',
+        label: "Tiếng Việt",
+        htmlLang: "vi-VN",
       },
       en: {
-        label: 'English',
-        htmlLang: 'en-US',
+        label: "English",
+        htmlLang: "en-US",
       },
     },
   },
@@ -39,31 +39,32 @@ const config: Config = {
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: ["@docusaurus/theme-mermaid"],
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
+          sidebarPath: "./sidebars.ts",
           showLastUpdateTime: false,
         },
         blog: {
           showReadingTime: true,
           feedOptions: {
-            type: ['rss', 'atom'],
+            type: ["rss", "atom"],
             xslt: true,
           },
-          blogTitle: 'xTMS Blog',
-          blogDescription: 'Updates, announcements, and changelog for xTMS',
+          blogTitle: "MSM-CAR-BOOKING Blog",
+          blogDescription:
+            "Updates, announcements, and changelog for MSM-CAR-BOOKING",
           postsPerPage: 10,
-          blogSidebarTitle: 'Recent posts',
+          blogSidebarTitle: "Recent posts",
           blogSidebarCount: 5,
-          onInlineAuthors: 'ignore',
+          onInlineAuthors: "ignore",
         },
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
     ],
@@ -72,14 +73,14 @@ const config: Config = {
   // Local search plugin
   plugins: [
     [
-      '@easyops-cn/docusaurus-search-local',
+      "@easyops-cn/docusaurus-search-local",
       {
         hashed: true,
-        language: ['en', 'vi'],
+        language: ["en", "vi"],
         highlightSearchTermsOnTargetPage: true,
         explicitSearchResultPath: true,
-        docsRouteBasePath: '/docs',
-        blogRouteBasePath: '/blog',
+        docsRouteBasePath: "/docs",
+        blogRouteBasePath: "/blog",
         indexDocs: true,
         indexBlog: true,
         indexPages: false,
@@ -89,7 +90,7 @@ const config: Config = {
 
   themeConfig: {
     colorMode: {
-      defaultMode: 'light',
+      defaultMode: "light",
       disableSwitch: false,
       respectPrefersColorScheme: true,
     },
@@ -100,98 +101,108 @@ const config: Config = {
       },
     },
     navbar: {
-      title: 'xTMS',
+      // title: "MSM-CAR-BOOKING",
       logo: {
-        alt: 'xTMS Logo',
-        src: 'img/logo.svg',
+        alt: "MISUMI Logo",
+        src: "img/misumi-main-logo.f015a661.png",
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'left',
-          label: 'Documentation',
+          type: "docSidebar",
+          sidebarId: "docsSidebar",
+          position: "left",
+          label: "Documentation",
         },
-        { to: '/blog', label: 'Blog', position: 'left' },
+        { to: "/blog", label: "Blog", position: "left" },
         {
-          type: 'localeDropdown',
-          position: 'right',
+          type: "localeDropdown",
+          position: "right",
         },
         {
-          href: 'https://github.com/xtms/xtms',
-          label: 'GitHub',
-          position: 'right',
+          href: "https://github.com/MSM-CAR-BOOKING/MSM-CAR-BOOKING",
+          label: "GitHub",
+          position: "right",
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       links: [
         {
-          title: 'Documentation',
+          title: "Documentation",
           items: [
             {
-              label: 'Getting Started',
-              to: '/docs/intro',
+              label: "Business Flows",
+              to: "/docs/business-flows",
             },
             {
-              label: 'Business Flows',
-              to: '/docs/business-flows',
+              label: "System Workflows",
+              to: "/docs/system-workflows",
             },
             {
-              label: 'Architecture',
-              to: '/docs/architecture',
+              label: "Database Models",
+              to: "/docs/database-models",
             },
           ],
         },
         {
-          title: 'Development',
+          title: "Development",
           items: [
             {
-              label: 'DevOps',
-              to: '/docs/devops',
+              label: "DevOps",
+              to: "/docs/devops",
             },
             {
-              label: 'Frontend',
-              to: '/docs/frontend',
+              label: "Frontend",
+              to: "/docs/frontend/design-system",
             },
             {
-              label: 'Database Reference',
-              to: '/docs/database-reference',
+              label: "Backend",
+              to: "/docs/backend/vehicle-matching-algorithm",
             },
           ],
         },
         {
-          title: 'More',
+          title: "More",
           items: [
             {
-              label: 'Blog',
-              to: '/blog',
+              label: "Blog",
+              to: "/blog",
             },
             {
-              label: 'GitHub',
-              href: 'https://github.com/xtms/xtms',
+              label: "GitHub",
+              href: "https://github.com/MSM-CAR-BOOKING/MSM-CAR-BOOKING",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} xTMS. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} MSM-CAR-BOOKING. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
       additionalLanguages: [
-        'bash',
-        'typescript',
-        'sql',
-        'nginx',
-        'docker',
-        'yaml',
-        'json',
+        "bash",
+        "typescript",
+        "sql",
+        "nginx",
+        "docker",
+        "yaml",
+        "json",
       ],
     },
     mermaid: {
-      theme: { light: 'neutral', dark: 'dark' },
+      theme: { light: "neutral", dark: "dark" },
+      options: {
+        fontSize: 18,
+        er: {
+          diagramPadding: 40,
+          entityPadding: 25,
+          useMaxWidth: false,
+          minEntityWidth: 140,
+          minEntityHeight: 90,
+        },
+      },
     },
   } satisfies Preset.ThemeConfig,
 };

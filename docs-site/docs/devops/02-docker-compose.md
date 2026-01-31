@@ -239,27 +239,27 @@ services:
   # ===== DATABASE =====
   postgres:
     image: postgres:15-alpine
-    container_name: xtms-postgres
+    container_name: MSM-CAR-BOOKING-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-xtms}      # Use env var or default
-      POSTGRES_USER: ${DB_USER:-xtms}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-xtms_dev_password}
+      POSTGRES_DB: ${DB_NAME:-MSM-CAR-BOOKING}      # Use env var or default
+      POSTGRES_USER: ${DB_USER:-MSM-CAR-BOOKING}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-MSM-CAR-BOOKING_dev_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Persist database
     ports:
       - "5432:5432"                             # Expose for local tools
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-xtms}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-MSM-CAR-BOOKING}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
   # ===== CACHE =====
   redis:
     image: redis:7-alpine
-    container_name: xtms-redis
+    container_name: MSM-CAR-BOOKING-redis
     command: redis-server --appendonly yes     # Enable persistence
     volumes:
       - redis_data:/data
@@ -271,12 +271,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
   # ===== API =====
   api:
-    image: xtms-saas-api:latest
-    container_name: xtms-saas-api
+    image: MSM-CAR-BOOKING-saas-api:latest
+    container_name: MSM-CAR-BOOKING-saas-api
     ports:
       - "3333:3333"
     environment:
@@ -284,9 +284,9 @@ services:
       PORT: 3333
       DB_HOST: postgres                        # Use service name as hostname
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-xtms}
-      DB_USER: ${DB_USER:-xtms}
-      DB_PASSWORD: ${DB_PASSWORD:-xtms_dev_password}
+      DB_NAME: ${DB_NAME:-MSM-CAR-BOOKING}
+      DB_USER: ${DB_USER:-MSM-CAR-BOOKING}
+      DB_PASSWORD: ${DB_PASSWORD:-MSM-CAR-BOOKING_dev_password}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret}
@@ -296,18 +296,18 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
   # ===== WEB FRONTEND =====
   web:
-    image: xtms-web:latest
-    container_name: xtms-web
+    image: MSM-CAR-BOOKING-web:latest
+    container_name: MSM-CAR-BOOKING-web
     ports:
       - "8080:80"
     depends_on:
       - api                                    # API must start first
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
 # ===== PERSISTENT STORAGE =====
 volumes:
@@ -316,7 +316,7 @@ volumes:
 
 # ===== NETWORKING =====
 networks:
-  xtms-network:
+  MSM-CAR-BOOKING-network:
     driver: bridge   # Default network driver
 ```
 
@@ -324,7 +324,7 @@ networks:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   xtms-network                         │
+│                   MSM-CAR-BOOKING-network                         │
 │                                                              │
 │  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐  │
 │  │   web   │───▶│   api   │───▶│postgres │    │  redis  │  │
@@ -450,8 +450,8 @@ Create `.env` in the same directory as `docker-compose.yml`:
 
 ```bash
 # .env
-DB_NAME=xtms
-DB_USER=xtms
+DB_NAME=MSM-CAR-BOOKING
+DB_USER=MSM-CAR-BOOKING
 DB_PASSWORD=super_secret_password
 JWT_SECRET=my_jwt_secret
 NODE_ENV=production
@@ -470,7 +470,7 @@ services:
 
 ```yaml
 # Use default if variable not set
-DB_NAME: ${DB_NAME:-xtms}
+DB_NAME: ${DB_NAME:-MSM-CAR-BOOKING}
 
 # Error if variable not set
 DB_PASSWORD: ${DB_PASSWORD:?Database password required}
@@ -520,19 +520,19 @@ version: '3.8'
 services:
   api:
     build:
-      context: ./xtms-saas-api
+      context: ./MSM-CAR-BOOKING-saas-api
       dockerfile: docker/Dockerfile.dev
     volumes:
-      - ./xtms-saas-api/src:/app/src        # Hot reload
+      - ./MSM-CAR-BOOKING-saas-api/src:/app/src        # Hot reload
       - /app/node_modules                    # Don't override node_modules
     environment:
       NODE_ENV: development
     command: pnpm run start:dev
 
   web:
-    build: ./xtms-web
+    build: ./MSM-CAR-BOOKING-web
     volumes:
-      - ./xtms-web/src:/app/src
+      - ./MSM-CAR-BOOKING-web/src:/app/src
       - /app/node_modules
     environment:
       NODE_ENV: development
@@ -554,14 +554,14 @@ version: '3.8'
 
 services:
   api:
-    image: registry.com/xtms-saas-api:v1.0.0  # Pre-built image
+    image: registry.com/MSM-CAR-BOOKING-saas-api:v1.0.0  # Pre-built image
     restart: unless-stopped
     environment:
       NODE_ENV: production
     # No volumes for source code
 
   web:
-    image: registry.com/xtms-web:v1.0.0
+    image: registry.com/MSM-CAR-BOOKING-web:v1.0.0
     restart: unless-stopped
 ```
 
@@ -583,15 +583,15 @@ docker compose up
 
 ## 🔧 Hands-On Exercises
 
-### Exercise 2: Build and Run xTMS
+### Exercise 2: Build and Run MSM-CAR-BOOKING
 
 ```bash
 # 1. Build images
-cd xtms-saas-api
-docker build -f docker/Dockerfile -t xtms-saas-api:latest .
+cd MSM-CAR-BOOKING-saas-api
+docker build -f docker/Dockerfile -t MSM-CAR-BOOKING-saas-api:latest .
 
-cd ../xtms-web
-docker build -t xtms-web:latest .
+cd ../MSM-CAR-BOOKING-web
+docker build -t MSM-CAR-BOOKING-web:latest .
 
 # 2. Start all services
 cd ..
@@ -607,7 +607,7 @@ docker compose logs -f api
 open http://localhost:8080
 
 # 6. Connect to database
-docker compose exec postgres psql -U xtms
+docker compose exec postgres psql -U MSM-CAR-BOOKING
 
 # 7. Stop everything
 docker compose down
@@ -623,10 +623,10 @@ version: '3.8'
 services:
   api:
     build:
-      context: ./xtms-saas-api
+      context: ./MSM-CAR-BOOKING-saas-api
       dockerfile: docker/Dockerfile.dev
     volumes:
-      - ./xtms-saas-api:/app
+      - ./MSM-CAR-BOOKING-saas-api:/app
       - /app/node_modules
     ports:
       - "3333:3333"
@@ -636,9 +636,9 @@ services:
       NODE_ENV: development
 
   web:
-    build: ./xtms-web
+    build: ./MSM-CAR-BOOKING-web
     volumes:
-      - ./xtms-web:/app
+      - ./MSM-CAR-BOOKING-web:/app
       - /app/node_modules
     ports:
       - "5173:5173"
@@ -700,7 +700,7 @@ healthcheck:
 docker compose ps
 
 # Detailed health info
-docker inspect xtms-saas-api --format='{{.State.Health.Status}}'
+docker inspect MSM-CAR-BOOKING-saas-api --format='{{.State.Health.Status}}'
 ```
 
 ---
@@ -713,7 +713,7 @@ Docker Compose creates a default network named `{project}_default`:
 
 ```bash
 docker network ls
-# xtms_default
+# MSM-CAR-BOOKING_default
 ```
 
 ### Custom Networks
@@ -888,7 +888,7 @@ docker compose exec -u root api chown -R 1000:1000 /app
 ```bash
 # Check network
 docker network ls
-docker network inspect xtms_default
+docker network inspect MSM-CAR-BOOKING_default
 
 # Recreate network
 docker compose down

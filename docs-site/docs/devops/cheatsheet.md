@@ -6,7 +6,7 @@ sidebar_position: 11
 
 # DevOps Cheatsheet
 
-Quick reference for all DevOps commands used in xTMS.
+Quick reference for all DevOps commands used in MSM-CAR-BOOKING.
 
 ---
 
@@ -349,7 +349,7 @@ free -h                                # Memory usage
 
 ```bash
 # Pull and restart
-cd /opt/xtms
+cd /opt/MSM-CAR-BOOKING
 docker compose pull
 docker compose up -d
 
@@ -405,7 +405,7 @@ free -h
 ### Restart Everything
 
 ```bash
-cd /opt/xtms
+cd /opt/MSM-CAR-BOOKING
 docker compose down
 docker compose up -d
 docker compose logs -f
@@ -479,7 +479,7 @@ docker compose logs service
 docker compose exec service curl localhost:PORT
 
 # Check network
-docker network inspect xtms_default
+docker network inspect MSM-CAR-BOOKING_default
 ```
 
 ---

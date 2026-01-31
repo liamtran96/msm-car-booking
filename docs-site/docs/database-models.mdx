@@ -1,3 +1,5 @@
+import ZoomableMermaid from '@site/src/components/ZoomableMermaid';
+
 # Database Models
 
 This document describes the PostgreSQL data models for the MSM Car Booking System.
@@ -13,8 +15,41 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
 
 ## Entity Relationship Diagram
 
-```mermaid
-erDiagram
+### Entity Relationships
+
+| From | Relationship | To | Description |
+|------|--------------|-----|-------------|
+| **departments** | 1:N | users | A department employs many users |
+| **departments** | 1:N | bookings | A department pays for many bookings (cost allocation) |
+| **departments** | 1:N | trip_reports | A department is billed for many trips |
+| **users** | 1:N | vehicles | A driver can be assigned to multiple vehicles |
+| **users** | 1:N | bookings | A user (requester) can create many bookings |
+| **users** | 1:N | bookings | A user (driver) can be assigned to many bookings |
+| **users** | 1:N | bookings | A user can cancel many bookings |
+| **users** | 1:N | notifications | A user receives many notifications |
+| **users** | 1:N | odometer_logs | A user records many odometer readings |
+| **users** | 1:N | driver_shifts | A driver works many shifts |
+| **users** | 1:N | vehicle_maintenance | A user performs/logs many maintenance records |
+| **users** | 1:N | system_configs | A user updates many system configurations |
+| **users** | 1:N | audit_logs | A user's changes are tracked in audit logs |
+| **users** | 1:N | trip_reports | A driver appears in many trip reports |
+| **users** | 1:N | trip_reports | A requester appears in many trip reports |
+| **vehicles** | 1:N | km_quotas | A vehicle has monthly kilometer quotas |
+| **vehicles** | 1:N | bookings | A vehicle is assigned to many bookings |
+| **vehicles** | 1:N | gps_locations | A vehicle emits many GPS location records |
+| **vehicles** | 1:N | odometer_logs | A vehicle has many odometer readings |
+| **vehicles** | 1:N | vehicle_maintenance | A vehicle has many maintenance records |
+| **vehicles** | 1:N | trip_reports | A vehicle is used in many trip reports |
+| **bookings** | 1:N | trip_stops | A booking contains multiple stops (pickup/drop/intermediate) |
+| **bookings** | 1:N | notifications | A booking triggers many notifications |
+| **bookings** | 1:N | odometer_logs | A booking has start/end odometer readings |
+| **bookings** | 1:1 | trip_reports | A completed booking generates one trip report |
+| **bookings** | 1:1 | external_dispatches | A booking may be redirected to one external provider |
+| **pickup_points** | 1:N | trip_stops | A pickup point is used in many trip stops |
+
+<ZoomableMermaid
+  title="MSM Car Booking - Entity Relationship Diagram"
+  chart={`erDiagram
     %% ==================== CORE ENTITIES ====================
     departments {
         uuid id PK
@@ -272,7 +307,7 @@ erDiagram
     bookings ||--o| external_dispatches : "redirected_to"
 
     pickup_points ||--o{ trip_stops : "location_for"
-```
+`} />
 
 ### Diagram Legend
 

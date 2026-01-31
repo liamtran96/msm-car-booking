@@ -466,7 +466,7 @@ global:
   # Should match or be multiple of scrape_interval
 
   external_labels:
-    monitor: 'xtms-monitor'      # Added to all metrics (useful for federation)
+    monitor: 'MSM-CAR-BOOKING-monitor'      # Added to all metrics (useful for federation)
 
 # ===== ALERTMANAGER CONNECTION =====
 # Tell Prometheus where to send alerts
@@ -1343,15 +1343,15 @@ curl 'http://localhost:9090/api/v1/query?query=up'
 
 ---
 
-## xTMS Project Setup
+## MSM-CAR-BOOKING Project Setup
 
-This section provides the specific configuration for the xTMS project.
+This section provides the specific configuration for the MSM-CAR-BOOKING project.
 
 ### Current Project Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     xTMS Monitoring Architecture                     │
+│                     MSM-CAR-BOOKING Monitoring Architecture                     │
 │                                                                      │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐              │
 │  │   web       │    │     api     │    │  postgres   │              │
@@ -1386,7 +1386,7 @@ mkdir -p monitoring/{prometheus/rules,grafana/provisioning/{dashboards,datasourc
 Create `monitoring/docker-compose.monitoring.yml`:
 
 ```yaml
-# xTMS Monitoring Stack
+# MSM-CAR-BOOKING Monitoring Stack
 # Run with: docker compose -f monitoring/docker-compose.monitoring.yml up -d
 
 services:
@@ -1394,7 +1394,7 @@ services:
   # Collects and stores metrics from all services
   prometheus:
     image: prom/prometheus:v2.50.0
-    container_name: xtms-prometheus
+    container_name: MSM-CAR-BOOKING-prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -1408,7 +1408,7 @@ services:
       - '--web.enable-lifecycle'
     restart: unless-stopped
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
     # What happens:
     # 1. Prometheus starts and reads prometheus.yml
     # 2. Every 15s, it scrapes /metrics from configured targets
@@ -1419,7 +1419,7 @@ services:
   # Visualizes metrics with dashboards
   grafana:
     image: grafana/grafana:10.3.0
-    container_name: xtms-grafana
+    container_name: MSM-CAR-BOOKING-grafana
     ports:
       - "3001:3000"
     environment:
@@ -1431,7 +1431,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     restart: unless-stopped
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
     depends_on:
       - prometheus
     # What happens:
@@ -1443,7 +1443,7 @@ services:
   # Exposes host machine metrics (CPU, memory, disk)
   node-exporter:
     image: prom/node-exporter:v1.7.0
-    container_name: xtms-node-exporter
+    container_name: MSM-CAR-BOOKING-node-exporter
     ports:
       - "9100:9100"
     volumes:
@@ -1457,7 +1457,7 @@ services:
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
     # What happens:
     # 1. Reads system info from /proc, /sys, /rootfs
     # 2. Exposes metrics at http://localhost:9100/metrics
@@ -1467,14 +1467,14 @@ services:
   # Exposes PostgreSQL metrics
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.15.0
-    container_name: xtms-postgres-exporter
+    container_name: MSM-CAR-BOOKING-postgres-exporter
     ports:
       - "9187:9187"
     environment:
-      DATA_SOURCE_NAME: "postgresql://xtms:xlogistics_dev_password@host.docker.internal:5432/xtms?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://MSM-CAR-BOOKING:xlogistics_dev_password@host.docker.internal:5432/MSM-CAR-BOOKING?sslmode=disable"
     restart: unless-stopped
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
     # What happens:
     # 1. Connects to PostgreSQL using DATA_SOURCE_NAME
     # 2. Queries pg_stat_* tables for metrics
@@ -1484,21 +1484,21 @@ services:
   # Exposes Redis metrics
   redis-exporter:
     image: oliver006/redis_exporter:v1.57.0
-    container_name: xtms-redis-exporter
+    container_name: MSM-CAR-BOOKING-redis-exporter
     ports:
       - "9121:9121"
     environment:
       REDIS_ADDR: "redis://host.docker.internal:6379"
     restart: unless-stopped
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
     # What happens:
     # 1. Connects to Redis
     # 2. Runs INFO command to get stats
     # 3. Exposes at http://localhost:9121/metrics
 
 networks:
-  xtms-network:
+  MSM-CAR-BOOKING-network:
     external: true
     # Uses the same network as your main docker-compose.yml
     # This allows Prometheus to reach the API container
@@ -1508,18 +1508,18 @@ volumes:
   grafana_data:
 ```
 
-### Step 3: Create Prometheus Config for xTMS
+### Step 3: Create Prometheus Config for MSM-CAR-BOOKING
 
 Create `monitoring/prometheus/prometheus.yml`:
 
 ```yaml
-# xTMS Prometheus Configuration
+# MSM-CAR-BOOKING Prometheus Configuration
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
     environment: 'development'
-    project: 'xtms'
+    project: 'MSM-CAR-BOOKING'
 
 # Alert rules
 rule_files:
@@ -1534,9 +1534,9 @@ scrape_configs:
         labels:
           service: 'prometheus'
 
-  # ----- xTMS NestJS API -----
+  # ----- MSM-CAR-BOOKING NestJS API -----
   # Your API already has @willsoto/nestjs-prometheus installed
-  - job_name: 'xtms-saas-api'
+  - job_name: 'MSM-CAR-BOOKING-saas-api'
     static_configs:
       - targets: ['host.docker.internal:3333']
         labels:
@@ -1547,7 +1547,7 @@ scrape_configs:
 
   # ----- API Health Check -----
   # Monitors if the API is responding
-  - job_name: 'xtms-saas-api-health'
+  - job_name: 'MSM-CAR-BOOKING-saas-api-health'
     static_configs:
       - targets: ['host.docker.internal:3333']
     metrics_path: /api/health
@@ -1654,23 +1654,23 @@ datasources:
     editable: false
 ```
 
-### Step 6: Create Alert Rules for xTMS
+### Step 6: Create Alert Rules for MSM-CAR-BOOKING
 
-Create `monitoring/prometheus/rules/xtms-alerts.yml`:
+Create `monitoring/prometheus/rules/MSM-CAR-BOOKING-alerts.yml`:
 
 ```yaml
 groups:
-  - name: xtms-saas-api
+  - name: MSM-CAR-BOOKING-saas-api
     rules:
       # API is down
       - alert: XLogisticsAPIDown
-        expr: up{job="xtms-saas-api"} == 0
+        expr: up{job="MSM-CAR-BOOKING-saas-api"} == 0
         for: 1m
         labels:
           severity: critical
           service: api
         annotations:
-          summary: "xTMS API is down"
+          summary: "MSM-CAR-BOOKING API is down"
           description: "The API has been unreachable for more than 1 minute"
 
       # High API error rate
@@ -1686,7 +1686,7 @@ groups:
           summary: "High API error rate"
           description: "More than 5% of requests are failing"
 
-  - name: xtms-database
+  - name: MSM-CAR-BOOKING-database
     rules:
       # PostgreSQL is down
       - alert: PostgreSQLDown
@@ -1710,7 +1710,7 @@ groups:
           summary: "High database connection count"
           description: "More than 80 active connections"
 
-  - name: xtms-redis
+  - name: MSM-CAR-BOOKING-redis
     rules:
       # Redis is down
       - alert: RedisDown
@@ -1723,7 +1723,7 @@ groups:
           summary: "Redis is down"
           description: "Redis exporter is not responding"
 
-  - name: xtms-host
+  - name: MSM-CAR-BOOKING-host
     rules:
       # High memory usage
       - alert: HighMemoryUsage
@@ -1757,7 +1757,7 @@ cd monitoring
 docker compose -f docker-compose.monitoring.yml up -d
 
 # 3. Verify all services are running
-docker ps | grep xtms
+docker ps | grep MSM-CAR-BOOKING
 
 # 4. Check Prometheus targets
 open http://localhost:9090/targets
@@ -1773,7 +1773,7 @@ open http://localhost:3001
 # - Enter ID: 11835 (Redis)
 ```
 
-### Useful PromQL Queries for xTMS
+### Useful PromQL Queries for MSM-CAR-BOOKING
 
 ```promql
 # API request rate
@@ -1816,7 +1816,7 @@ cd monitoring && docker compose -f docker-compose.monitoring.yml up -d
 cd monitoring && docker compose -f docker-compose.monitoring.yml down
 
 # View Prometheus logs
-docker logs -f xtms-prometheus
+docker logs -f MSM-CAR-BOOKING-prometheus
 
 # Reload Prometheus config (no restart needed)
 curl -X POST http://localhost:9090/-/reload

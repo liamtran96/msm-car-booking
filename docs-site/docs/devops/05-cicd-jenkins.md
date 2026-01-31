@@ -161,7 +161,7 @@ pipeline {
 
     // ===== ENVIRONMENT =====
     environment {
-        DOCKER_REGISTRY = 'registry.gitlab.com/your-group/xtms-saas-api'
+        DOCKER_REGISTRY = 'registry.gitlab.com/your-group/MSM-CAR-BOOKING-saas-api'
         DOCKER_CREDENTIALS = 'gitlab-registry'  // Jenkins credential ID
     }
     // These are available as $DOCKER_REGISTRY in shell commands
@@ -268,7 +268,7 @@ pipeline {
                 sshagent(['staging-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no $STAGING_USER@$STAGING_HOST << 'EOF'
-                            cd /opt/xtms
+                            cd /opt/MSM-CAR-BOOKING
                             docker-compose pull api
                             docker-compose up -d api
                         EOF
@@ -290,7 +290,7 @@ pipeline {
                 sshagent(['production-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST << 'EOF'
-                            cd /opt/xtms
+                            cd /opt/MSM-CAR-BOOKING
                             docker-compose pull api
                             docker-compose up -d api
                         EOF
@@ -385,7 +385,7 @@ stage('Tests') {
 pipeline {
     environment {
         // Global variables
-        APP_NAME = 'xtms'
+        APP_NAME = 'MSM-CAR-BOOKING'
         DOCKER_IMAGE = "${APP_NAME}:${BUILD_NUMBER}"
     }
 

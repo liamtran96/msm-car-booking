@@ -1,61 +1,61 @@
 ---
 id: index
-title: DevOps Overview
+title: Tổng quan DevOps
 sidebar_position: 1
 ---
 
-# DevOps Documentation
+# Tài liệu DevOps
 
-Welcome to the MSM-CAR-BOOKING DevOps documentation. This guide covers all the DevOps technologies used in this project.
+Chào mừng bạn đến với tài liệu DevOps của MSM-CAR-BOOKING. Hướng dẫn này bao gồm tất cả các công nghệ DevOps được sử dụng trong dự án.
 
-## Learning Path
+## Lộ trình học tập
 
-Follow this order to learn DevOps from basics to advanced:
+Theo thứ tự này để học DevOps từ cơ bản đến nâng cao:
 
 ```
-1. Docker Basics          → Understand containers
+1. Docker Basics          → Hiểu về containers
          ↓
-2. Docker Compose         → Multi-container apps
+2. Docker Compose         → Ứng dụng nhiều container
          ↓
 3. Nginx                  → Web server & proxy
          ↓
-4. Git Workflow           → Version control
+4. Git Workflow           → Quản lý phiên bản
          ↓
-5. CI/CD with Jenkins     → Automation
+5. CI/CD với Jenkins      → Tự động hóa
          ↓
-6. Deployment             → Going to production
+6. Deployment             → Triển khai production
          ↓
-7. Monitoring             → Keep it running
+7. Monitoring             → Duy trì hoạt động
          ↓
 8. Prometheus & Grafana   → Metrics & dashboards
 ```
 
-## Documentation Index
+## Mục lục tài liệu
 
-### Core Technologies
+### Công nghệ lõi
 
-| Document | Description | Difficulty |
-|----------|-------------|------------|
-| [Docker](./01-docker) | Container basics, commands, Dockerfile | Beginner |
-| [Docker Compose](./02-docker-compose) | Multi-container orchestration | Beginner |
-| [Nginx](./03-nginx) | Web server, reverse proxy, SSL | Intermediate |
-| [Git Workflow](./04-git-workflow) | Branching, commits, collaboration | Beginner |
-| [CI/CD with Jenkins](./05-cicd-jenkins) | Automated builds and deployments | Intermediate |
-| [Deployment](./06-deployment) | Production deployment strategies | Advanced |
-| [Monitoring](./07-monitoring) | Logging, health checks, debugging | Intermediate |
-| [Prometheus & Grafana](./09-prometheus-grafana) | Metrics, dashboards, alerting | Intermediate |
+| Tài liệu | Mô tả | Độ khó |
+|----------|-------|--------|
+| [Docker](./01-docker) | Cơ bản về container, lệnh, Dockerfile | Cơ bản |
+| [Docker Compose](./02-docker-compose) | Điều phối nhiều container | Cơ bản |
+| [Nginx](./03-nginx) | Web server, reverse proxy, SSL | Trung bình |
+| [Git Workflow](./04-git-workflow) | Branching, commits, cộng tác | Cơ bản |
+| [CI/CD với Jenkins](./05-cicd-jenkins) | Builds và deployments tự động | Trung bình |
+| [Deployment](./06-deployment) | Chiến lược triển khai production | Nâng cao |
+| [Monitoring](./07-monitoring) | Logging, health checks, debugging | Trung bình |
+| [Prometheus & Grafana](./09-prometheus-grafana) | Metrics, dashboards, alerting | Trung bình |
 
-### Quick Reference
+### Tham khảo nhanh
 
-| Document | Description |
-|----------|-------------|
-| [Cheatsheet](./cheatsheet) | All commands in one place |
+| Tài liệu | Mô tả |
+|----------|-------|
+| [Cheatsheet](./cheatsheet) | Tất cả lệnh trong một nơi |
 
-## Architecture Overview
+## Tổng quan kiến trúc
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Your Computer (Dev)                       │
+│                    Máy tính của bạn (Dev)                    │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
 │  │ VS Code │  │ Docker  │  │  Git    │  │ Browser │        │
 │  └─────────┘  └─────────┘  └─────────┘  └─────────┘        │
@@ -75,8 +75,8 @@ Follow this order to learn DevOps from basics to advanced:
 ┌─────────────────────────────────────────────────────────────┐
 │                    GitHub / GitLab                           │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │  Repository: MSM-CAR-BOOKING                                    │    │
-│  │  Branches: main, develop, feature/*                  │    │
+│  │  Repository: MSM-CAR-BOOKING                        │    │
+│  │  Branches: main, develop, feature/*                 │    │
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                     │
@@ -100,25 +100,25 @@ Follow this order to learn DevOps from basics to advanced:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Technology Stack Summary
+## Tóm tắt công nghệ
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Containerization** | Docker | Package apps with dependencies |
-| **Orchestration** | Docker Compose | Run multiple containers |
-| **Web Server** | Nginx | Serve files, proxy requests, SSL |
-| **Version Control** | Git | Track code changes |
-| **CI/CD** | Jenkins | Automate build & deploy |
-| **Database** | PostgreSQL | Store data |
-| **Cache** | Redis | Fast data access |
-| **Metrics** | Prometheus | Collect & store metrics |
-| **Dashboards** | Grafana | Visualize metrics & alerts |
+| Tầng | Công nghệ | Mục đích |
+|------|-----------|----------|
+| **Containerization** | Docker | Đóng gói ứng dụng với dependencies |
+| **Orchestration** | Docker Compose | Chạy nhiều containers |
+| **Web Server** | Nginx | Phục vụ files, proxy requests, SSL |
+| **Version Control** | Git | Theo dõi thay đổi code |
+| **CI/CD** | Jenkins | Tự động hóa build & deploy |
+| **Database** | PostgreSQL | Lưu trữ dữ liệu |
+| **Cache** | Redis | Truy cập dữ liệu nhanh |
+| **Metrics** | Prometheus | Thu thập & lưu trữ metrics |
+| **Dashboards** | Grafana | Trực quan hóa metrics & alerts |
 
-## Getting Started
+## Bắt đầu
 
-### Prerequisites
+### Yêu cầu tiên quyết
 
-Before starting, install these tools:
+Trước khi bắt đầu, cài đặt các công cụ sau:
 
 ```bash
 # macOS
@@ -128,22 +128,22 @@ brew install --cask visual-studio-code
 
 # Ubuntu
 sudo apt install git
-# Docker: see Docker documentation
+# Docker: xem tài liệu Docker
 ```
 
-### Quick Start
+### Khởi động nhanh
 
 ```bash
-# Clone the project
+# Clone dự án
 git clone https://github.com/MSM-CAR-BOOKING/MSM-CAR-BOOKING.git
 cd MSM-CAR-BOOKING
 
-# Start all services
+# Khởi động tất cả services
 docker compose up -d
 
-# View logs
+# Xem logs
 docker compose logs -f
 
-# Open in browser
+# Mở trong browser
 open http://localhost:8080
 ```

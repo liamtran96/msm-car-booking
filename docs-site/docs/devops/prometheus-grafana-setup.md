@@ -4,7 +4,7 @@ title: Prometheus & Grafana Setup
 sidebar_position: 10
 ---
 
-# Prometheus & Grafana Setup Guide for xTMS
+# Prometheus & Grafana Setup Guide for MSM-CAR-BOOKING
 
 **Document Version:** 1.0
 **Last Updated:** 2026-01-25
@@ -75,11 +75,11 @@ sidebar_position: 10
 
 ## Architecture
 
-### xTMS Monitoring Architecture
+### MSM-CAR-BOOKING Monitoring Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     xTMS Monitoring Stack                                │
+│                     MSM-CAR-BOOKING Monitoring Stack                                │
 │                                                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
 │  │                        Docker Network                            │    │
@@ -124,7 +124,7 @@ sidebar_position: 10
 Before starting, ensure you have:
 
 - [x] Docker and Docker Compose installed
-- [x] xTMS API running (`pnpm start:dev`)
+- [x] MSM-CAR-BOOKING API running (`pnpm start:dev`)
 - [x] Basic understanding of HTTP and REST APIs
 
 ### Verify Docker is Running
@@ -218,7 +218,7 @@ Every 15 seconds:
 
 ### Step 1: Install Dependencies
 
-The xTMS project already has these installed:
+The MSM-CAR-BOOKING project already has these installed:
 
 ```bash
 pnpm add @willsoto/nestjs-prometheus prom-client
@@ -402,7 +402,7 @@ services:
   # ===== PROMETHEUS =====
   prometheus:
     image: prom/prometheus:v2.47.0
-    container_name: xtms-prometheus
+    container_name: MSM-CAR-BOOKING-prometheus
 
     # Mount configuration and data
     volumes:
@@ -421,7 +421,7 @@ services:
       - "9090:9090"
 
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
 volumes:
   prometheus_data:  # Persistent storage for metrics
@@ -467,9 +467,9 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # ----- xTMS NestJS API -----
+  # ----- MSM-CAR-BOOKING NestJS API -----
   # Your main application
-  - job_name: 'xtms-saas-api'
+  - job_name: 'MSM-CAR-BOOKING-saas-api'
     static_configs:
       - targets: ['host.docker.internal:3333']
         # host.docker.internal = host machine from Docker
@@ -491,7 +491,7 @@ scrape_configs:
 ### Step 3: Start Prometheus
 
 ```bash
-cd /path/to/xtms-saas-api
+cd /path/to/MSM-CAR-BOOKING-saas-api
 
 # Start Prometheus
 docker compose up -d prometheus
@@ -515,13 +515,13 @@ docker compose logs -f prometheus
    - Go to http://localhost:9090/graph
    - Enter: `up`
    - Click "Execute"
-   - You should see `up{job="xtms-saas-api"} 1`
+   - You should see `up{job="MSM-CAR-BOOKING-saas-api"} 1`
 
 ### Step 5: Useful PromQL Queries
 
 ```promql
 # Is the API up? (1 = yes, 0 = no)
-up{job="xtms-saas-api"}
+up{job="MSM-CAR-BOOKING-saas-api"}
 
 # Memory usage in MB
 process_resident_memory_bytes / 1024 / 1024
@@ -551,7 +551,7 @@ services:
   # ===== GRAFANA =====
   grafana:
     image: grafana/grafana:10.1.0
-    container_name: xtms-grafana
+    container_name: MSM-CAR-BOOKING-grafana
 
     # Persistent storage and provisioning
     volumes:
@@ -571,7 +571,7 @@ services:
       - prometheus
 
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
 volumes:
   grafana_data:  # Persistent storage for dashboards
@@ -604,7 +604,7 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy           # Grafana proxies requests to Prometheus
-    url: http://xtms-prometheus:9090  # Docker service name
+    url: http://MSM-CAR-BOOKING-prometheus:9090  # Docker service name
     isDefault: true         # Use this for new panels by default
     editable: false         # Prevent changes via UI
 ```
@@ -763,7 +763,7 @@ nodejs_active_handles_total
 ### Step 6: Save Dashboard
 
 1. Click **Save** (disk icon, top right)
-2. Enter name: "xTMS API Overview"
+2. Enter name: "MSM-CAR-BOOKING API Overview"
 3. Click **Save**
 
 ---
@@ -791,16 +791,16 @@ For: 5m
 
 ```yaml
 groups:
-  - name: xtms-api
+  - name: MSM-CAR-BOOKING-api
     rules:
       # API is down
       - alert: APIDown
-        expr: up{job="xtms-saas-api"} == 0
+        expr: up{job="MSM-CAR-BOOKING-saas-api"} == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "xTMS API is down"
+          summary: "MSM-CAR-BOOKING API is down"
           description: "The API has been unreachable for 1 minute"
 
       # High memory usage
@@ -847,19 +847,19 @@ rule_files:
 **Debug:**
 ```bash
 # Check from Prometheus container
-docker exec xtms-prometheus wget -qO- http://host.docker.internal:3333/api/metrics
+docker exec MSM-CAR-BOOKING-prometheus wget -qO- http://host.docker.internal:3333/api/metrics
 ```
 
 ### Problem: Grafana can't connect to Prometheus
 
 **Check:**
 1. Is Prometheus running? `curl http://localhost:9090`
-2. Is the datasource URL correct? Use Docker service name: `http://xtms-prometheus:9090`
+2. Is the datasource URL correct? Use Docker service name: `http://MSM-CAR-BOOKING-prometheus:9090`
 
 **Debug:**
 ```bash
 # Check from Grafana container
-docker exec xtms-grafana wget -qO- http://xtms-prometheus:9090/api/v1/query?query=up
+docker exec MSM-CAR-BOOKING-grafana wget -qO- http://MSM-CAR-BOOKING-prometheus:9090/api/v1/query?query=up
 ```
 
 ### Problem: No data in dashboard
@@ -912,7 +912,7 @@ curl -u admin:admin -X POST http://localhost:3002/api/dashboards/import \
 
 ```promql
 # API up/down
-up{job="xtms-saas-api"}
+up{job="MSM-CAR-BOOKING-saas-api"}
 
 # Memory usage (bytes)
 process_resident_memory_bytes
@@ -936,7 +936,7 @@ nodejs_heap_size_used_bytes
 ### File Locations
 
 ```
-xtms-saas-api/
+MSM-CAR-BOOKING-saas-api/
 ├── src/
 │   └── metrics/
 │       ├── metrics.module.ts      # Metrics configuration
@@ -1030,7 +1030,7 @@ Alertmanager handles alerts from Prometheus and routes them to email, Slack, Pag
 
 1. Go to https://myaccount.google.com/apppasswords
 2. Select app: "Mail"
-3. Select device: "Other (Custom name)" → "xTMS Alertmanager"
+3. Select device: "Other (Custom name)" → "MSM-CAR-BOOKING Alertmanager"
 4. Click "Generate"
 5. Copy the 16-character password (e.g., `abcd efgh ijkl mnop`)
 
@@ -1045,7 +1045,7 @@ Alertmanager handles alerts from Prometheus and routes them to email, Slack, Pag
 **File:** `prometheus/alertmanager/alertmanager.yml`
 
 ```yaml
-# Alertmanager Configuration for xTMS
+# Alertmanager Configuration for MSM-CAR-BOOKING
 # Handles alert routing and email notifications
 
 global:
@@ -1088,14 +1088,14 @@ receivers:
       - to: 'devops@your-domain.com'
         send_resolved: true
         headers:
-          subject: '[xTMS Alert] {{ .GroupLabels.alertname }}'
+          subject: '[MSM-CAR-BOOKING Alert] {{ .GroupLabels.alertname }}'
 
   - name: 'email-critical'
     email_configs:
       - to: 'devops@your-domain.com, admin@your-domain.com'
         send_resolved: true
         headers:
-          subject: '[xTMS CRITICAL] {{ .GroupLabels.alertname }}'
+          subject: '[MSM-CAR-BOOKING CRITICAL] {{ .GroupLabels.alertname }}'
 
 # Inhibition rules
 inhibit_rules:
@@ -1130,24 +1130,24 @@ groups:
     rules:
       # API is down
       - alert: APIDown
-        expr: up{job="xtms-saas-api"} == 0
+        expr: up{job="MSM-CAR-BOOKING-saas-api"} == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "xTMS API is down"
+          summary: "MSM-CAR-BOOKING API is down"
           description: "The API has been unreachable for 1 minute."
 
       # High error rate
       - alert: HighErrorRate
         expr: |
-          sum(rate(http_requests_total{job="xtms-saas-api", status=~"5.."}[5m]))
-          / sum(rate(http_requests_total{job="xtms-saas-api"}[5m])) > 0.05
+          sum(rate(http_requests_total{job="MSM-CAR-BOOKING-saas-api", status=~"5.."}[5m]))
+          / sum(rate(http_requests_total{job="MSM-CAR-BOOKING-saas-api"}[5m])) > 0.05
         for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "High error rate on xTMS API"
+          summary: "High error rate on MSM-CAR-BOOKING API"
           description: "Error rate is above 5% for 5 minutes."
 
   # Node/Process Alerts
@@ -1156,12 +1156,12 @@ groups:
     rules:
       # High memory usage
       - alert: HighMemoryUsage
-        expr: process_resident_memory_bytes{job="xtms-saas-api"} / 1024 / 1024 > 512
+        expr: process_resident_memory_bytes{job="MSM-CAR-BOOKING-saas-api"} / 1024 / 1024 > 512
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High memory usage on xTMS API"
+          summary: "High memory usage on MSM-CAR-BOOKING API"
           description: "Memory usage is above 512MB for 5 minutes."
 ```
 
@@ -1189,7 +1189,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'xtms-saas-api'
+  - job_name: 'MSM-CAR-BOOKING-saas-api'
     static_configs:
       - targets: ['host.docker.internal:3333']
     metrics_path: /api/metrics
@@ -1211,7 +1211,7 @@ services:
   # Alertmanager (Alert Handling & Email Notifications)
   alertmanager:
     image: prom/alertmanager:v0.26.0
-    container_name: xtms-alertmanager
+    container_name: MSM-CAR-BOOKING-alertmanager
     volumes:
       - ./prometheus/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
       - alertmanager_data:/alertmanager
@@ -1222,7 +1222,7 @@ services:
     ports:
       - "9093:9093"
     networks:
-      - xtms-network
+      - MSM-CAR-BOOKING-network
 
   # Update prometheus to depend on alertmanager
   prometheus:
@@ -1302,7 +1302,7 @@ grafana:
     GF_SMTP_USER: ${SMTP_USER:-your-email@gmail.com}
     GF_SMTP_PASSWORD: ${SMTP_PASSWORD:-your-app-password}
     GF_SMTP_FROM_ADDRESS: ${SMTP_FROM:-alerts@your-domain.com}
-    GF_SMTP_FROM_NAME: ${SMTP_FROM_NAME:-xTMS Grafana}
+    GF_SMTP_FROM_NAME: ${SMTP_FROM_NAME:-MSM-CAR-BOOKING Grafana}
 ```
 
 #### Step 2: Add SMTP Variables to .env
@@ -1313,7 +1313,7 @@ SMTP_HOST=smtp.gmail.com:587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-16-char-app-password
 SMTP_FROM=alerts@your-domain.com
-SMTP_FROM_NAME=xTMS Alerts
+SMTP_FROM_NAME=MSM-CAR-BOOKING Alerts
 ```
 
 #### Step 3: Restart Grafana
@@ -1377,7 +1377,7 @@ SMTP_PASSWORD=your-16-char-app-password  # Gmail App Password
 
 # Common settings
 SMTP_FROM=alerts@your-domain.com
-SMTP_FROM_NAME=xTMS Alerts
+SMTP_FROM_NAME=MSM-CAR-BOOKING Alerts
 ALERT_EMAIL=devops@your-domain.com
 ```
 
@@ -1410,7 +1410,7 @@ ALERT_EMAIL=devops@your-domain.com
 docker compose logs alertmanager
 
 # Test SMTP connection
-docker exec xtms-alertmanager sh -c "nc -zv smtp.gmail.com 587"
+docker exec MSM-CAR-BOOKING-alertmanager sh -c "nc -zv smtp.gmail.com 587"
 ```
 
 #### Problem: Grafana SMTP test fails
@@ -1426,7 +1426,7 @@ docker exec xtms-alertmanager sh -c "nc -zv smtp.gmail.com 587"
 docker compose logs grafana | grep -i smtp
 
 # Verify env vars
-docker exec xtms-grafana env | grep GF_SMTP
+docker exec MSM-CAR-BOOKING-grafana env | grep GF_SMTP
 ```
 
 #### Problem: Alerts not firing
@@ -1479,5 +1479,5 @@ curl http://localhost:9093/api/v1/alerts | jq
 
 ---
 
-**Document maintained by:** xTMS DevOps Team
+**Document maintained by:** MSM-CAR-BOOKING DevOps Team
 **Questions?** See [Troubleshooting](#troubleshooting) or check the logs

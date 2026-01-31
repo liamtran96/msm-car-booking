@@ -1,0 +1,901 @@
+import ZoomableMermaid from '@site/src/components/ZoomableMermaid';
+
+# Mô hình cơ sở dữ liệu
+
+Tài liệu này mô tả các mô hình dữ liệu PostgreSQL cho Hệ thống MSM Car Booking.
+
+## Công nghệ sử dụng
+
+- **Backend**: NestJS với TypeORM
+- **Database**: PostgreSQL
+- **Frontend**: React
+- **Infrastructure**: Docker
+
+---
+
+## Sơ đồ quan hệ thực thể
+
+### Quan hệ giữa các thực thể
+
+| Từ | Quan hệ | Đến | Mô tả |
+|----|---------|-----|-------|
+| **departments** | 1:N | users | Một phòng ban có nhiều nhân viên |
+| **departments** | 1:N | bookings | Một phòng ban chi trả cho nhiều đặt xe (phân bổ chi phí) |
+| **departments** | 1:N | trip_reports | Một phòng ban được tính phí cho nhiều chuyến đi |
+| **users** | 1:N | vehicles | Một tài xế có thể được gán cho nhiều xe |
+| **users** | 1:N | bookings | Một người dùng (người yêu cầu) có thể tạo nhiều đặt xe |
+| **users** | 1:N | bookings | Một người dùng (tài xế) có thể được gán cho nhiều đặt xe |
+| **users** | 1:N | bookings | Một người dùng có thể hủy nhiều đặt xe |
+| **users** | 1:N | notifications | Một người dùng nhận nhiều thông báo |
+| **users** | 1:N | odometer_logs | Một người dùng ghi nhiều số đọc đồng hồ km |
+| **users** | 1:N | driver_shifts | Một tài xế làm việc nhiều ca |
+| **users** | 1:N | vehicle_maintenance | Một người dùng thực hiện/ghi nhiều bản ghi bảo dưỡng |
+| **users** | 1:N | system_configs | Một người dùng cập nhật nhiều cấu hình hệ thống |
+| **users** | 1:N | audit_logs | Các thay đổi của người dùng được theo dõi trong audit logs |
+| **users** | 1:N | trip_reports | Một tài xế xuất hiện trong nhiều báo cáo chuyến đi |
+| **users** | 1:N | trip_reports | Một người yêu cầu xuất hiện trong nhiều báo cáo chuyến đi |
+| **vehicles** | 1:N | km_quotas | Một xe có định mức km theo tháng |
+| **vehicles** | 1:N | bookings | Một xe được gán cho nhiều đặt xe |
+| **vehicles** | 1:N | gps_locations | Một xe phát ra nhiều bản ghi vị trí GPS |
+| **vehicles** | 1:N | odometer_logs | Một xe có nhiều số đọc đồng hồ km |
+| **vehicles** | 1:N | vehicle_maintenance | Một xe có nhiều bản ghi bảo dưỡng |
+| **vehicles** | 1:N | trip_reports | Một xe được sử dụng trong nhiều báo cáo chuyến đi |
+| **bookings** | 1:N | trip_stops | Một đặt xe chứa nhiều điểm dừng (đón/trả/trung gian) |
+| **bookings** | 1:N | notifications | Một đặt xe kích hoạt nhiều thông báo |
+| **bookings** | 1:N | odometer_logs | Một đặt xe có số đọc đồng hồ đầu/cuối |
+| **bookings** | 1:1 | trip_reports | Một đặt xe hoàn thành tạo một báo cáo chuyến đi |
+| **bookings** | 1:1 | external_dispatches | Một đặt xe có thể được chuyển đến một nhà cung cấp bên ngoài |
+| **pickup_points** | 1:N | trip_stops | Một điểm đón được sử dụng trong nhiều điểm dừng |
+
+<ZoomableMermaid
+  title="MSM Car Booking - Sơ đồ quan hệ thực thể"
+  chart={`erDiagram
+    %% ==================== CORE ENTITIES ====================
+    departments {
+        uuid id PK
+        varchar name
+        varchar code UK
+        varchar cost_center
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    users {
+        uuid id PK
+        varchar email UK
+        varchar password_hash
+        varchar full_name
+        varchar phone
+        user_role role
+        user_segment user_segment
+        uuid department_id FK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    vehicles {
+        uuid id PK
+        varchar license_plate UK
+        varchar brand
+        varchar model
+        int year
+        int capacity
+        vehicle_type vehicle_type
+        vehicle_status status
+        decimal current_odometer_km
+        varchar gps_device_id
+        uuid assigned_driver_id FK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    km_quotas {
+        uuid id PK
+        uuid vehicle_id FK
+        date month
+        decimal quota_km
+        decimal tolerance_km
+        decimal used_km
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    pickup_points {
+        uuid id PK
+        varchar name
+        varchar address
+        decimal latitude
+        decimal longitude
+        point_type point_type
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ==================== BOOKING ENTITIES ====================
+    bookings {
+        uuid id PK
+        varchar booking_code UK
+        uuid requester_id FK
+        uuid department_id FK
+        booking_type booking_type
+        booking_status status
+        date scheduled_date
+        time scheduled_time
+        date end_date
+        text purpose
+        int passenger_count
+        text notes
+        uuid assigned_vehicle_id FK
+        uuid assigned_driver_id FK
+        decimal estimated_km
+        decimal actual_km
+        timestamp cancelled_at
+        uuid cancelled_by FK
+        cancellation_reason cancellation_reason
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    trip_stops {
+        uuid id PK
+        uuid booking_id FK
+        uuid pickup_point_id FK
+        varchar custom_address
+        decimal latitude
+        decimal longitude
+        int stop_order
+        stop_type stop_type
+        time scheduled_time
+        timestamp actual_arrival
+        timestamp created_at
+    }
+
+    external_dispatches {
+        uuid id PK
+        uuid booking_id FK
+        external_provider provider
+        varchar provider_booking_id
+        varchar provider_driver_name
+        decimal estimated_cost
+        decimal actual_cost
+        text dispatch_reason
+        timestamp dispatched_at
+        timestamp completed_at
+    }
+
+    %% ==================== GPS & TRACKING ====================
+    gps_locations {
+        uuid id PK
+        uuid vehicle_id FK
+        decimal latitude
+        decimal longitude
+        decimal speed_kmh
+        decimal heading
+        timestamp recorded_at
+    }
+
+    odometer_logs {
+        uuid id PK
+        uuid vehicle_id FK
+        uuid booking_id FK
+        decimal reading_km
+        reading_type reading_type
+        timestamp recorded_at
+        uuid recorded_by FK
+    }
+
+    %% ==================== DRIVER MANAGEMENT ====================
+    driver_shifts {
+        uuid id PK
+        uuid driver_id FK
+        date shift_date
+        time start_time
+        time end_time
+        shift_status status
+        timestamp actual_start
+        timestamp actual_end
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ==================== VEHICLE MAINTENANCE ====================
+    vehicle_maintenance {
+        uuid id PK
+        uuid vehicle_id FK
+        maintenance_type maintenance_type
+        text description
+        decimal odometer_at_service
+        decimal cost
+        varchar vendor_name
+        timestamp started_at
+        timestamp completed_at
+        decimal next_service_km
+        date next_service_date
+        uuid performed_by FK
+    }
+
+    %% ==================== NOTIFICATIONS ====================
+    notifications {
+        uuid id PK
+        uuid user_id FK
+        uuid booking_id FK
+        notification_channel channel
+        notification_type notification_type
+        varchar title
+        text message
+        notification_status status
+        timestamp sent_at
+        timestamp created_at
+    }
+
+    %% ==================== REPORTING & CONFIG ====================
+    trip_reports {
+        uuid id PK
+        uuid booking_id FK
+        uuid vehicle_id FK
+        uuid driver_id FK
+        uuid requester_id FK
+        uuid department_id FK
+        date trip_date
+        decimal start_km
+        decimal end_km
+        decimal total_km
+        int duration_minutes
+        decimal cost_estimate
+        timestamp created_at
+    }
+
+    system_configs {
+        uuid id PK
+        varchar key UK
+        jsonb value
+        text description
+        uuid updated_by FK
+        timestamp updated_at
+    }
+
+    audit_logs {
+        uuid id PK
+        varchar table_name
+        uuid record_id
+        varchar action
+        jsonb old_values
+        jsonb new_values
+        text changed_fields
+        uuid changed_by FK
+        timestamp changed_at
+    }
+
+    booking_sequences {
+        date date_key PK
+        int last_seq
+    }
+
+    %% ==================== RELATIONSHIPS ====================
+    departments ||--o{ users : "employs"
+    departments ||--o{ bookings : "pays_for"
+    departments ||--o{ trip_reports : "billed_to"
+
+    users ||--o{ vehicles : "assigned_driver"
+    users ||--o{ bookings : "requests"
+    users ||--o{ bookings : "drives"
+    users ||--o{ bookings : "cancels"
+    users ||--o{ notifications : "receives"
+    users ||--o{ odometer_logs : "records"
+    users ||--o{ driver_shifts : "works"
+    users ||--o{ vehicle_maintenance : "performs"
+    users ||--o{ system_configs : "updates"
+    users ||--o{ audit_logs : "changes"
+    users ||--o{ trip_reports : "driver_report"
+    users ||--o{ trip_reports : "requester_report"
+
+    vehicles ||--o{ km_quotas : "has_quota"
+    vehicles ||--o{ bookings : "assigned_to"
+    vehicles ||--o{ gps_locations : "tracked_by"
+    vehicles ||--o{ odometer_logs : "logged"
+    vehicles ||--o{ vehicle_maintenance : "serviced"
+    vehicles ||--o{ trip_reports : "used_in"
+
+    bookings ||--o{ trip_stops : "contains"
+    bookings ||--o{ notifications : "triggers"
+    bookings ||--o{ odometer_logs : "recorded_for"
+    bookings ||--o| trip_reports : "generates"
+    bookings ||--o| external_dispatches : "redirected_to"
+
+    pickup_points ||--o{ trip_stops : "location_for"
+`} />
+
+### Chú giải sơ đồ
+
+| Ký hiệu | Ý nghĩa |
+|---------|---------|
+| `PK` | Primary Key (Khóa chính) |
+| `FK` | Foreign Key (Khóa ngoại) |
+| `UK` | Unique Key (Khóa duy nhất) |
+| `\|\|--o{` | Một-Nhiều |
+| `\|\|--o\|` | Một-Một (tùy chọn) |
+
+### Nhóm thực thể
+
+#### Thực thể lõi
+| Bảng | Mô tả |
+|------|-------|
+| `departments` | Đơn vị tổ chức để theo dõi chi phí |
+| `users` | Tất cả người dùng hệ thống (admin, tài xế, nhân viên) |
+| `vehicles` | Xe trong đội xe với theo dõi GPS |
+| `km_quotas` | Định mức km hàng tháng theo xe |
+| `pickup_points` | Địa điểm đã định nghĩa và tùy chỉnh |
+
+#### Hệ thống đặt xe
+| Bảng | Mô tả |
+|------|-------|
+| `bookings` | Bản ghi đặt xe chính |
+| `trip_stops` | Các điểm dừng riêng lẻ trong đặt xe |
+| `external_dispatches` | Bản ghi khi chuyển đến Grab/Taxi |
+| `booking_sequences` | Sinh mã đặt xe thread-safe |
+
+#### Theo dõi & GPS
+| Bảng | Mô tả |
+|------|-------|
+| `gps_locations` | Vị trí xe thời gian thực (phân vùng theo tháng) |
+| `odometer_logs` | Số đọc khoảng cách cho chuyến đi |
+
+#### Vận hành
+| Bảng | Mô tả |
+|------|-------|
+| `driver_shifts` | Lịch trình và tình trạng sẵn sàng của tài xế |
+| `vehicle_maintenance` | Lịch sử bảo dưỡng và sửa chữa |
+| `notifications` | Hàng chờ thông báo đa kênh |
+
+#### Báo cáo & Kiểm toán
+| Bảng | Mô tả |
+|------|-------|
+| `trip_reports` | Dữ liệu phân tích đã chuẩn hóa |
+| `system_configs` | Cấu hình key-value JSONB |
+| `audit_logs` | Theo dõi thay đổi cho các bảng quan trọng |
+
+---
+
+## Thực thể lõi
+
+### Users (Người dùng)
+
+Lưu trữ tất cả người dùng hệ thống bao gồm nhân viên, tài xế và quản trị viên.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| email | VARCHAR | UNIQUE, NOT NULL | Địa chỉ email người dùng |
+| password_hash | VARCHAR | NOT NULL | Mật khẩu đã mã hóa |
+| full_name | VARCHAR | NOT NULL | Họ tên đầy đủ |
+| phone | VARCHAR | | Số điện thoại liên hệ |
+| role | ENUM | NOT NULL | Vai trò người dùng (xem bên dưới) |
+| user_segment | ENUM | | Loại phân khúc người dùng |
+| department_id | UUID | FK → departments | Phòng ban liên kết |
+| is_active | BOOLEAN | DEFAULT true | Trạng thái tài khoản |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Giá trị Role Enum:**
+- `ADMIN` - Quản trị viên hệ thống
+- `PIC` - Người phụ trách (Person In Charge)
+- `GA` - Tổng vụ (General Affairs)
+- `DRIVER` - Tài xế
+- `EMPLOYEE` - Nhân viên thường
+
+**Giá trị User Segment Enum:**
+- `DAILY` - Người dùng SIC với tuyến cố định
+- `SOMETIMES` - Người đi công tác với đặt xe không thường xuyên
+
+---
+
+### Departments (Phòng ban)
+
+Các phòng ban tổ chức để theo dõi trung tâm chi phí.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| name | VARCHAR | NOT NULL | Tên phòng ban |
+| code | VARCHAR | UNIQUE, NOT NULL | Mã phòng ban |
+| cost_center | VARCHAR | | Mã trung tâm chi phí |
+| is_active | BOOLEAN | DEFAULT true | Trạng thái phòng ban |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+---
+
+### Vehicles (Xe)
+
+Các xe trong đội xe có thể đặt.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| license_plate | VARCHAR | UNIQUE, NOT NULL | Biển số xe |
+| brand | VARCHAR | NOT NULL | Hãng xe |
+| model | VARCHAR | NOT NULL | Dòng xe |
+| year | INT | | Năm sản xuất |
+| capacity | INT | NOT NULL | Sức chứa hành khách (chỗ ngồi) |
+| vehicle_type | ENUM | NOT NULL | Loại xe |
+| status | ENUM | NOT NULL | Trạng thái hiện tại |
+| current_odometer_km | DECIMAL | | Số đọc đồng hồ km hiện tại |
+| gps_device_id | VARCHAR | | ID thiết bị GPS |
+| assigned_driver_id | UUID | FK → users | Tài xế mặc định được gán |
+| is_active | BOOLEAN | DEFAULT true | Trạng thái hoạt động xe |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Giá trị Vehicle Type Enum:**
+- `SEDAN` - Sedan tiêu chuẩn
+- `SUV` - Xe thể thao đa dụng
+- `VAN` - Xe van chở khách
+- `BUS` - Xe buýt/xe buýt nhỏ
+
+**Giá trị Status Enum:**
+- `AVAILABLE` - Sẵn sàng đặt
+- `IN_USE` - Đang trong chuyến đi
+- `MAINTENANCE` - Đang bảo dưỡng
+- `INACTIVE` - Không hoạt động
+
+---
+
+### KM Quotas (Định mức KM)
+
+Định mức km hàng tháng theo xe.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Xe liên kết |
+| month | DATE | NOT NULL | Ngày đầu tháng |
+| quota_km | DECIMAL | NOT NULL | Định mức tháng (km) |
+| tolerance_km | DECIMAL | | Ngưỡng cho phép vượt định mức |
+| used_km | DECIMAL | DEFAULT 0 | Km đã sử dụng trong tháng |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Ràng buộc Unique:** `UNIQUE(vehicle_id, month)`
+
+---
+
+### Pickup Points (Điểm đón)
+
+Các địa điểm đón/trả đã định nghĩa và tùy chỉnh.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| name | VARCHAR | NOT NULL | Tên địa điểm |
+| address | VARCHAR | NOT NULL | Địa chỉ đầy đủ |
+| latitude | DECIMAL | | Vĩ độ GPS |
+| longitude | DECIMAL | | Kinh độ GPS |
+| point_type | ENUM | NOT NULL | Loại điểm đón |
+| is_active | BOOLEAN | DEFAULT true | Trạng thái hoạt động |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Giá trị Point Type Enum:**
+- `FIXED` - Địa điểm văn phòng đã định nghĩa
+- `FLEXIBLE` - Địa điểm tùy chỉnh do người dùng định nghĩa
+
+---
+
+## Thực thể đặt xe & Chuyến đi
+
+### Bookings (Đặt xe)
+
+Bản ghi đặt xe/đặt trước chính.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| booking_code | VARCHAR | UNIQUE, NOT NULL | Mã đặt xe dễ đọc |
+| requester_id | UUID | FK → users, NOT NULL | Người dùng đã đặt |
+| department_id | UUID | FK → departments | Phòng ban để phân bổ chi phí |
+| booking_type | ENUM | NOT NULL | Loại đặt xe |
+| status | ENUM | NOT NULL | Trạng thái đặt xe hiện tại |
+| scheduled_date | DATE | NOT NULL | Ngày chuyến đi dự kiến |
+| scheduled_time | TIME | NOT NULL | Giờ chuyến đi dự kiến |
+| end_date | DATE | | Ngày kết thúc cho block schedule |
+| purpose | TEXT | | Mục đích/lý do chuyến đi |
+| passenger_count | INT | NOT NULL | Số hành khách |
+| notes | TEXT | | Ghi chú bổ sung |
+| assigned_vehicle_id | UUID | FK → vehicles | Xe được gán |
+| assigned_driver_id | UUID | FK → users | Tài xế được gán |
+| estimated_km | DECIMAL | | Khoảng cách dự kiến |
+| actual_km | DECIMAL | | Khoảng cách thực tế |
+| cancelled_at | TIMESTAMP | | Thời điểm hủy đặt xe |
+| cancelled_by | UUID | FK → users | Người hủy |
+| cancellation_reason | ENUM | | Lý do hủy |
+| cancellation_notes | TEXT | | Chi tiết hủy bổ sung |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Giá trị Booking Type Enum:**
+- `SINGLE_TRIP` - Chuyến đi một chiều hoặc khứ hồi
+- `MULTI_STOP` - Chuyến đi nhiều điểm dừng
+- `BLOCK_SCHEDULE` - Đặt xe định kỳ/block
+
+**Giá trị Status Enum:**
+- `PENDING` - Đang chờ xác nhận
+- `CONFIRMED` - Đã xác nhận đặt xe
+- `ASSIGNED` - Đã gán xe và tài xế
+- `IN_PROGRESS` - Chuyến đi đang thực hiện
+- `COMPLETED` - Chuyến đi đã hoàn thành
+- `CANCELLED` - Đã hủy đặt xe
+- `REDIRECTED_EXTERNAL` - Đã chuyển đến nhà cung cấp bên ngoài
+
+**Giá trị Cancellation Reason Enum:**
+- `USER_REQUEST` - Người dùng hủy đặt xe của mình
+- `NO_VEHICLE_AVAILABLE` - Không có xe phù hợp
+- `NO_DRIVER_AVAILABLE` - Không có tài xế
+- `QUOTA_EXCEEDED` - Vượt định mức KM
+- `VEHICLE_BREAKDOWN` - Xe gặp sự cố kỹ thuật
+- `SCHEDULE_CONFLICT` - Xung đột lịch trình
+- `WEATHER` - Điều kiện thời tiết xấu
+- `EMERGENCY` - Tình huống khẩn cấp
+- `DUPLICATE` - Đặt xe trùng lặp
+- `OTHER` - Lý do khác (xem ghi chú)
+
+---
+
+### Trip Stops (Điểm dừng)
+
+Các điểm dừng riêng lẻ trong một đặt xe (hỗ trợ đa điểm).
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| booking_id | UUID | FK → bookings, NOT NULL | Đặt xe cha |
+| pickup_point_id | UUID | FK → pickup_points | Điểm đón đã định nghĩa |
+| custom_address | VARCHAR | | Địa chỉ tùy chỉnh nếu linh hoạt |
+| latitude | DECIMAL | | Vĩ độ GPS |
+| longitude | DECIMAL | | Kinh độ GPS |
+| stop_order | INT | NOT NULL | Thứ tự điểm dừng trong chuyến |
+| stop_type | ENUM | NOT NULL | Loại điểm dừng |
+| scheduled_time | TIME | | Thời gian đến dự kiến |
+| actual_arrival | TIMESTAMP | | Thời gian đến thực tế |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+
+**Giá trị Stop Type Enum:**
+- `PICKUP` - Đón hành khách
+- `DROP` - Trả hành khách
+- `STOP` - Điểm dừng trung gian
+
+---
+
+### External Dispatches (Điều xe ngoài)
+
+Bản ghi khi đặt xe được chuyển đến nhà cung cấp bên ngoài (Grab/Taxi).
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| booking_id | UUID | FK → bookings, NOT NULL | Đặt xe liên quan |
+| provider | ENUM | NOT NULL | Nhà cung cấp bên ngoài |
+| provider_booking_id | VARCHAR | | Mã tham chiếu của nhà cung cấp |
+| provider_driver_name | VARCHAR | | Tên tài xế từ nhà cung cấp |
+| provider_vehicle_info | VARCHAR | | Thông tin xe từ nhà cung cấp |
+| provider_phone | VARCHAR | | Số điện thoại liên hệ |
+| estimated_cost | DECIMAL | | Chi phí ước tính |
+| actual_cost | DECIMAL | | Chi phí thực tế |
+| dispatch_reason | TEXT | NOT NULL | Lý do không dùng xe nội bộ |
+| dispatched_at | TIMESTAMP | NOT NULL | Thời điểm điều xe |
+| completed_at | TIMESTAMP | | Thời điểm hoàn thành |
+| notes | TEXT | | Ghi chú bổ sung |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+
+**Giá trị External Provider Enum:**
+- `GRAB` - Dịch vụ Grab
+- `GOJEK` - Dịch vụ Gojek
+- `BE` - Dịch vụ Be
+- `TAXI_MAI_LINH` - Taxi Mai Linh
+- `TAXI_VINASUN` - Taxi Vinasun
+- `OTHER` - Nhà cung cấp khác
+
+---
+
+## GPS & Theo dõi
+
+### GPS Locations (Vị trí GPS)
+
+Theo dõi vị trí xe thời gian thực.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Xe được theo dõi |
+| latitude | DECIMAL | NOT NULL | Vĩ độ GPS |
+| longitude | DECIMAL | NOT NULL | Kinh độ GPS |
+| speed_kmh | DECIMAL | | Tốc độ hiện tại (km/h) |
+| heading | DECIMAL | | Hướng đi (độ) |
+| recorded_at | TIMESTAMP | NOT NULL | Thời điểm ghi nhận |
+
+**Index:** `INDEX(vehicle_id, recorded_at)`
+
+---
+
+### Odometer Logs (Nhật ký đồng hồ km)
+
+Số đọc đồng hồ km để theo dõi khoảng cách.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Xe |
+| booking_id | UUID | FK → bookings | Đặt xe liên quan |
+| reading_km | DECIMAL | NOT NULL | Số đọc đồng hồ |
+| reading_type | ENUM | NOT NULL | Loại số đọc |
+| recorded_at | TIMESTAMP | NOT NULL | Thời điểm ghi nhận |
+| recorded_by | UUID | FK → users | Người ghi nhận |
+
+**Giá trị Reading Type Enum:**
+- `TRIP_START` - Số đọc khi bắt đầu chuyến
+- `TRIP_END` - Số đọc khi kết thúc chuyến
+- `DAILY_CHECK` - Kiểm tra bảo dưỡng hàng ngày
+
+---
+
+## Thông báo
+
+### Notifications (Thông báo)
+
+Thông báo hệ thống gửi đến người dùng.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| user_id | UUID | FK → users, NOT NULL | Người nhận |
+| booking_id | UUID | FK → bookings | Đặt xe liên quan |
+| channel | ENUM | NOT NULL | Kênh thông báo |
+| notification_type | ENUM | NOT NULL | Loại thông báo |
+| title | VARCHAR | NOT NULL | Tiêu đề thông báo |
+| message | TEXT | NOT NULL | Nội dung thông báo |
+| status | ENUM | NOT NULL | Trạng thái gửi |
+| sent_at | TIMESTAMP | | Thời điểm gửi |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+
+**Giá trị Channel Enum:**
+- `APP_PUSH` - Thông báo đẩy di động
+- `AUTO_CALL` - Cuộc gọi tự động
+- `SMS` - Tin nhắn văn bản
+
+**Giá trị Notification Type Enum:**
+- `BOOKING_CONFIRMED` - Xác nhận đặt xe
+- `VEHICLE_ARRIVING` - Xe đang đến
+- `TRIP_STARTED` - Chuyến đi đã bắt đầu
+- `TRIP_COMPLETED` - Chuyến đi đã hoàn thành
+- `BOOKING_CANCELLED` - Đặt xe đã bị hủy
+
+**Giá trị Status Enum:**
+- `PENDING` - Chưa gửi
+- `SENT` - Đã gửi đến nhà cung cấp
+- `DELIVERED` - Xác nhận đã gửi
+- `FAILED` - Gửi thất bại
+
+---
+
+## Vận hành
+
+### Driver Shifts (Ca làm việc tài xế)
+
+Lịch trình và theo dõi tình trạng sẵn sàng của tài xế.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| driver_id | UUID | FK → users, NOT NULL | Tài xế |
+| shift_date | DATE | NOT NULL | Ngày ca làm việc |
+| start_time | TIME | NOT NULL | Giờ bắt đầu ca |
+| end_time | TIME | NOT NULL | Giờ kết thúc ca |
+| status | ENUM | NOT NULL | Trạng thái ca |
+| actual_start | TIMESTAMP | | Giờ check-in thực tế |
+| actual_end | TIMESTAMP | | Giờ check-out thực tế |
+| notes | TEXT | | Ghi chú bổ sung |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Ràng buộc Unique:** `UNIQUE(driver_id, shift_date, start_time)`
+
+**Giá trị Shift Status Enum:**
+- `SCHEDULED` - Ca đã lên lịch
+- `ACTIVE` - Tài xế đang trong ca
+- `COMPLETED` - Ca kết thúc bình thường
+- `ABSENT` - Tài xế vắng mặt
+- `CANCELLED` - Ca bị hủy
+
+---
+
+### Vehicle Maintenance (Bảo dưỡng xe)
+
+Lịch sử bảo dưỡng và sửa chữa xe.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| vehicle_id | UUID | FK → vehicles, NOT NULL | Xe |
+| maintenance_type | ENUM | NOT NULL | Loại bảo dưỡng |
+| description | TEXT | NOT NULL | Mô tả công việc |
+| odometer_at_service | DECIMAL | | Số đọc đồng hồ lúc bảo dưỡng |
+| cost | DECIMAL | | Chi phí bảo dưỡng |
+| vendor_name | VARCHAR | | Tên nhà cung cấp dịch vụ |
+| started_at | TIMESTAMP | NOT NULL | Thời điểm bắt đầu |
+| completed_at | TIMESTAMP | | Thời điểm hoàn thành |
+| next_service_km | DECIMAL | | Số km đề xuất bảo dưỡng tiếp theo |
+| next_service_date | DATE | | Ngày đề xuất bảo dưỡng tiếp theo |
+| performed_by | UUID | FK → users | Người thực hiện/ghi nhận |
+| notes | TEXT | | Ghi chú bổ sung |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+
+**Giá trị Maintenance Type Enum:**
+- `SCHEDULED` - Bảo dưỡng định kỳ
+- `REPAIR` - Sửa chữa sau hỏng hóc
+- `INSPECTION` - Kiểm tra an toàn
+- `TIRE_SERVICE` - Xoay/thay lốp
+- `OIL_CHANGE` - Thay dầu và lọc
+- `CLEANING` - Vệ sinh trong/ngoài
+- `OTHER` - Bảo dưỡng khác
+
+---
+
+## Báo cáo & Kiểm toán
+
+### Trip Reports (Báo cáo chuyến đi)
+
+Dữ liệu chuyến đi đã chuẩn hóa cho báo cáo và phân tích.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| booking_id | UUID | FK → bookings, NOT NULL | Đặt xe nguồn |
+| vehicle_id | UUID | FK → vehicles | Xe sử dụng |
+| driver_id | UUID | FK → users | Tài xế |
+| requester_id | UUID | FK → users | Người yêu cầu |
+| department_id | UUID | FK → departments | Phòng ban |
+| trip_date | DATE | NOT NULL | Ngày chuyến đi |
+| start_km | DECIMAL | | Đồng hồ bắt đầu |
+| end_km | DECIMAL | | Đồng hồ kết thúc |
+| total_km | DECIMAL | | Tổng khoảng cách |
+| duration_minutes | INT | | Thời gian chuyến đi |
+| cost_estimate | DECIMAL | | Chi phí ước tính |
+| created_at | TIMESTAMP | DEFAULT now() | Thời điểm tạo |
+
+---
+
+### System Configs (Cấu hình hệ thống)
+
+Lưu trữ cấu hình key-value.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| key | VARCHAR | UNIQUE, NOT NULL | Khóa cấu hình |
+| value | JSONB | NOT NULL | Giá trị cấu hình |
+| description | TEXT | | Mô tả cấu hình |
+| updated_by | UUID | FK → users | Người cập nhật cuối |
+| updated_at | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật cuối |
+
+**Ví dụ cấu hình:**
+```json
+{
+  "km_tolerance_limit": 50,
+  "auto_dispatch_enabled": true,
+  "notification_channels": ["APP_PUSH", "AUTO_CALL"]
+}
+```
+
+---
+
+### Audit Logs (Nhật ký kiểm toán)
+
+Theo dõi thay đổi toàn diện cho các bảng quan trọng.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| id | UUID | PK | Khóa chính |
+| table_name | VARCHAR | NOT NULL | Tên bảng bị thay đổi |
+| record_id | UUID | NOT NULL | ID bản ghi bị thay đổi |
+| action | VARCHAR | NOT NULL | INSERT, UPDATE, hoặc DELETE |
+| old_values | JSONB | | Giá trị trước đó (UPDATE/DELETE) |
+| new_values | JSONB | | Giá trị mới (INSERT/UPDATE) |
+| changed_fields | TEXT[] | | Danh sách các trường bị thay đổi |
+| changed_by | UUID | FK → users | Người thực hiện thay đổi |
+| changed_at | TIMESTAMP | DEFAULT now() | Thời điểm thay đổi |
+| session_user_name | TEXT | | Tên user phiên CSDL |
+| client_ip | INET | | Địa chỉ IP client |
+
+**Indexes:**
+- `INDEX(table_name, record_id)` - Tìm lịch sử cho bản ghi cụ thể
+- `INDEX(changed_at DESC)` - Các thay đổi gần đây
+- `INDEX(changed_by)` - Thay đổi theo người dùng
+
+---
+
+### Booking Sequences (Chuỗi đặt xe)
+
+Theo dõi chuỗi mã đặt xe thread-safe để ngăn race conditions.
+
+| Cột | Kiểu | Ràng buộc | Mô tả |
+|-----|------|-----------|-------|
+| date_key | DATE | PK | Ngày cho chuỗi |
+| last_seq | INTEGER | NOT NULL, DEFAULT 0 | Số thứ tự cuối cùng |
+
+**Cách sử dụng:** Mã đặt xe được sinh theo định dạng `MSM-YYYYMMDD-XXXX` trong đó XXXX là chuỗi số hàng ngày.
+
+---
+
+## Quyết định thiết kế
+
+1. **Không có đặt xe khách**: Tất cả đặt xe yêu cầu tài khoản nhân viên để phân bổ chi phí và theo dõi đúng cách.
+
+2. **Khóa chính UUID**: Tất cả các bảng sử dụng UUID làm khóa chính để hỗ trợ hệ thống phân tán và ngăn tấn công enumeration.
+
+3. **Xóa mềm**: Sử dụng cờ `is_active` thay vì xóa cứng để duy trì tính toàn vẹn tham chiếu và nhật ký kiểm toán.
+
+4. **Báo cáo chuẩn hóa**: Bảng `trip_reports` cung cấp dữ liệu đã tổng hợp trước cho các truy vấn báo cáo nhanh.
+
+5. **JSONB cho cấu hình**: Lưu trữ cấu hình linh hoạt sử dụng PostgreSQL JSONB để dễ mở rộng.
+
+6. **Dữ liệu GPS Time-Series**: `gps_locations` phân vùng theo tháng cho ghi dữ liệu khối lượng lớn và lưu giữ dữ liệu hiệu quả.
+
+7. **An toàn Race Condition cho mã đặt xe**: Bảng `booking_sequences` với pattern UPSERT ngăn trùng mã khi insert đồng thời.
+
+8. **Máy trạng thái trạng thái**: Chuyển đổi trạng thái đặt xe được xác thực bởi trigger để ngăn trạng thái không hợp lệ (ví dụ: CANCELLED → IN_PROGRESS).
+
+9. **Nhật ký kiểm toán toàn diện**: Bảng `audit_logs` tự động ghi lại tất cả thay đổi đến các bảng quan trọng với giá trị trước/sau.
+
+10. **Theo dõi nhà cung cấp bên ngoài**: `external_dispatches` ghi lại khi đặt xe được thực hiện bởi Grab/Taxi để phân tích chi phí.
+
+---
+
+## Tham chiếu các Enum Types
+
+### Người dùng & Truy cập
+```sql
+user_role: ADMIN, PIC, GA, DRIVER, EMPLOYEE
+user_segment: DAILY, SOMETIMES
+```
+
+### Xe
+```sql
+vehicle_type: SEDAN, SUV, VAN, BUS
+vehicle_status: AVAILABLE, IN_USE, MAINTENANCE, INACTIVE
+```
+
+### Địa điểm
+```sql
+point_type: FIXED, FLEXIBLE
+```
+
+### Đặt xe
+```sql
+booking_type: SINGLE_TRIP, MULTI_STOP, BLOCK_SCHEDULE
+booking_status: PENDING, CONFIRMED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED, REDIRECTED_EXTERNAL
+stop_type: PICKUP, DROP, STOP
+cancellation_reason: USER_REQUEST, NO_VEHICLE_AVAILABLE, NO_DRIVER_AVAILABLE, QUOTA_EXCEEDED,
+                     VEHICLE_BREAKDOWN, SCHEDULE_CONFLICT, WEATHER, EMERGENCY, DUPLICATE, OTHER
+```
+
+### Nhà cung cấp bên ngoài
+```sql
+external_provider: GRAB, GOJEK, BE, TAXI_MAI_LINH, TAXI_VINASUN, OTHER
+```
+
+### Vận hành
+```sql
+reading_type: TRIP_START, TRIP_END, DAILY_CHECK
+shift_status: SCHEDULED, ACTIVE, COMPLETED, ABSENT, CANCELLED
+maintenance_type: SCHEDULED, REPAIR, INSPECTION, TIRE_SERVICE, OIL_CHANGE, CLEANING, OTHER
+```
+
+### Thông báo
+```sql
+notification_channel: APP_PUSH, AUTO_CALL, SMS
+notification_type: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED
+notification_status: PENDING, SENT, DELIVERED, FAILED
+```

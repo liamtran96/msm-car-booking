@@ -16,14 +16,14 @@ function HomepageHeader() {
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-          <Link className="button button--primary button--lg" to="/docs/intro">
+          <Link className="button button--primary button--lg" to="/docs/business-flows">
             Get Started
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/architecture"
+            to="/docs/devops"
           >
-            Architecture
+            DevOps Guide
           </Link>
         </div>
       </div>
@@ -63,9 +63,9 @@ export default function Home(): ReactNode {
               link="/docs/business-flows"
             />
             <FeatureCard
-              title="Architecture"
-              description="System design, backend, frontend, and database architecture documentation."
-              link="/docs/architecture"
+              title="System Workflows"
+              description="Visual diagrams showing how the car booking system works."
+              link="/docs/system-workflows"
             />
             <FeatureCard
               title="DevOps"

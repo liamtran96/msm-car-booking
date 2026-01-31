@@ -5,7 +5,7 @@
 Implement a **Weighted Scoring with Batch Optimization** algorithm for auto-assigning vehicles to booking requests.
 
 **Why this approach:**
-- O(B×V) complexity - fast enough for 50 bookings × 50 vehicles in <100ms
+- O(B×V) complexity - fast enough for 50 bookings × 50 vehicles in `<100ms`
 - Easy to tune weights based on business priorities
 - Explainable - each assignment shows why a vehicle was chosen
 - Simpler than Hungarian algorithm while still effective

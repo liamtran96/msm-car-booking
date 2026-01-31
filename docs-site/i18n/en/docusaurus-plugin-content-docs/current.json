@@ -1,0 +1,30 @@
+{
+  "sidebar.docsSidebar.doc.Business Flows": {
+    "message": "Business Flows",
+    "description": "The label for doc Business Flows in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.System Workflows": {
+    "message": "System Workflows",
+    "description": "The label for doc System Workflows in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.Database Models": {
+    "message": "Database Models",
+    "description": "The label for doc Database Models in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.DevOps": {
+    "message": "DevOps",
+    "description": "The label for category DevOps in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Backend": {
+    "message": "Backend",
+    "description": "The label for category Backend in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Frontend": {
+    "message": "Frontend",
+    "description": "The label for category Frontend in sidebar docsSidebar"
+  },
+  "version.label": {
+    "message": "Next version 🚧",
+    "description": "The label for version current"
+  }
+}

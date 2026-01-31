@@ -105,7 +105,7 @@ Replace instances one at a time. Zero downtime but takes longer.
 # docker-compose.yml
 services:
   api:
-    image: xtms-saas-api:latest
+    image: MSM-CAR-BOOKING-saas-api:latest
     deploy:
       replicas: 3
       update_config:
@@ -139,8 +139,8 @@ for replica in "${REPLICAS[@]}"; do
 
     # Start new instance
     docker run -d --name $replica \
-        --network xtms \
-        xtms-saas-api:new
+        --network MSM-CAR-BOOKING \
+        MSM-CAR-BOOKING-saas-api:new
 
     # Wait for health check
     until docker exec $replica curl -f http://localhost:3333/health; do
@@ -196,23 +196,23 @@ version: '3.8'
 
 services:
   api-blue:
-    image: xtms-saas-api:${BLUE_VERSION:-latest}
+    image: MSM-CAR-BOOKING-saas-api:${BLUE_VERSION:-latest}
     container_name: api-blue
     ports:
       - "3333:3333"
     networks:
-      - xtms
+      - MSM-CAR-BOOKING
 
   api-green:
-    image: xtms-saas-api:${GREEN_VERSION:-latest}
+    image: MSM-CAR-BOOKING-saas-api:${GREEN_VERSION:-latest}
     container_name: api-green
     ports:
       - "3334:3333"
     networks:
-      - xtms
+      - MSM-CAR-BOOKING
 
 networks:
-  xtms:
+  MSM-CAR-BOOKING:
 ```
 
 ```nginx
@@ -346,7 +346,7 @@ echo "Deploying canary with ${CANARY_PERCENT}% traffic"
 # Deploy canary
 docker run -d --name api-canary \
     -p 3334:3333 \
-    xtms-saas-api:$NEW_VERSION
+    MSM-CAR-BOOKING-saas-api:$NEW_VERSION
 
 # Wait for health
 until curl -f http://localhost:3334/health; do sleep 2; done
@@ -543,7 +543,7 @@ Complete deployment script for VPS:
 set -e  # Exit on error
 
 # Configuration
-APP_NAME="xtms"
+APP_NAME="MSM-CAR-BOOKING"
 DOCKER_REGISTRY="registry.gitlab.com/your-org"
 DEPLOY_DIR="/opt/$APP_NAME"
 BACKUP_DIR="/opt/backups/$APP_NAME"
