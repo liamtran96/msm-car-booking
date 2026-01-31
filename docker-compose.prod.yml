@@ -1,0 +1,45 @@
+version: '3.8'
+
+# Production overrides for 3GB VPS optimization
+services:
+  postgres:
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      target: production
+    restart: always
+    environment:
+      NODE_ENV: production
+      DB_SYNCHRONIZE: "false"
+      DB_LOGGING: "false"
+    volumes: []  # Remove source mount in production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build:
+      target: production
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  nginx:
+    restart: always
+    profiles: []  # Enable nginx in production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

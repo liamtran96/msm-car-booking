@@ -43,6 +43,7 @@ Follow this order to learn DevOps from basics to advanced:
 | [CI/CD with Jenkins](./05-cicd-jenkins) | Automated builds and deployments | Intermediate |
 | [Deployment](./06-deployment) | Production deployment strategies | Advanced |
 | [Monitoring](./07-monitoring) | Logging, health checks, debugging | Intermediate |
+| [VPS Deployment Guide](./08-vps-deployment-guide) | Backend-only VPS deployment | Intermediate |
 | [Prometheus & Grafana](./09-prometheus-grafana) | Metrics, dashboards, alerting | Intermediate |
 
 ### Quick Reference

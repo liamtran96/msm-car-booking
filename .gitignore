@@ -40,3 +40,12 @@ temp/
 
 # Database
 *.sql.backup
+backups/
+
+# Docker
+certbot/
+
+# SSL certificates
+*.pem
+*.crt
+*.key

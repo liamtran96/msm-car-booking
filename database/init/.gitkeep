@@ -1,0 +1,3 @@
+# This directory contains PostgreSQL initialization scripts
+# Scripts are executed in alphabetical order when the container starts for the first time
+# Example: 01-extensions.sql, 02-schema.sql, etc.
