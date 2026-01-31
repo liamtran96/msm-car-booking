@@ -66,8 +66,9 @@ flowchart TB
 | **User Management** | `users`, `departments`, `driver_shifts` |
 | **Notifications** | `notifications` |
 | **Reporting & Config** | `trip_reports`, `audit_logs`, `system_configs` |
+| **Driver App** | `trip_expenses`, `trip_events` |
 
-**Total: 17 tables**
+**Total: 19 tables**
 
 ---
 
@@ -948,3 +949,55 @@ flowchart TD
 - **Covered:** 27 ✅
 - **Not Applicable:** 1 ➖ (Project analysis phase)
 - **Coverage:** 100%
+
+---
+
+## Driver App - Requirements Verification (13 Features)
+
+| No. | Feature | Database Support | Status |
+|-----|---------|------------------|--------|
+| 1 | Login | `users` table with role=DRIVER | ✅ |
+| 2 | Trip List | `bookings` filtered by assigned_driver_id | ✅ |
+| 3 | Trip Order Details | `bookings` + `trip_stops` + `users` (requester) | ✅ |
+| 4 | Confirm Task | `bookings.driver_response` + `trip_events` | ✅ |
+| 5 | Start/End Trip | `bookings.status` + `trip_events` | ✅ |
+| 6 | Record Expenses | `trip_expenses` table | ✅ |
+| 7 | Enter Start/End Odometer | `odometer_logs` table | ✅ |
+| 8 | Validity Check | `odometer_logs` + `gps_locations` comparison | ✅ |
+| 9 | Push Notification | `notifications` with channel=APP_PUSH | ✅ |
+| 10 | Schedule Reminder | `notifications` with scheduled delivery | ✅ |
+| 11 | Trigger Auto-call | `notifications` with channel=AUTO_CALL + `trip_events` | ✅ |
+| 12 | Trip History | `bookings` + `trip_reports` | ✅ |
+| 13 | KM Summary | `v_driver_monthly_stats` view | ✅ |
+
+**Driver App Coverage: 13/13 (100%)**
+
+---
+
+## Employee App - Requirements Verification (8 Features)
+
+| No. | Feature | Database Support | Status |
+|-----|---------|------------------|--------|
+| 1 | Login | `users` table with role=EMPLOYEE | ✅ |
+| 2 | Basic Booking | `bookings` with booking_type=SINGLE_TRIP | ✅ |
+| 3 | Multi-stop Booking | `bookings` + `trip_stops` with multiple entries | ✅ |
+| 4 | Block Booking by Day | `bookings` with booking_type=BLOCK_SCHEDULE, end_date | ✅ |
+| 5 | Cancel Booking | `bookings` cancellation fields | ✅ |
+| 6 | Booking History List | `bookings` filtered by requester_id | ✅ |
+| 7 | Instant Confirmation | `notifications` BOOKING_CONFIRMED or external redirect | ✅ |
+| 8 | Push Notification | `notifications` with channel=APP_PUSH | ✅ |
+
+**Employee App Coverage: 8/8 (100%)**
+
+---
+
+## Overall System Coverage Summary
+
+| Platform | Features | Covered | Coverage |
+|----------|----------|---------|----------|
+| Web Portal | 28 | 27 | 96% |
+| Driver App | 13 | 13 | 100% |
+| Employee App | 8 | 8 | 100% |
+| **Total** | **49** | **48** | **98%** |
+
+*Note: 1 Web Portal feature (Survey & Integration Design) is a project phase, not a system feature.*

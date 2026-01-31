@@ -45,6 +45,8 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
 | **bookings** | 1:N | odometer_logs | A booking has start/end odometer readings |
 | **bookings** | 1:1 | trip_reports | A completed booking generates one trip report |
 | **bookings** | 1:1 | external_dispatches | A booking may be redirected to one external provider |
+| **bookings** | 1:N | trip_expenses | A booking can have multiple expenses |
+| **bookings** | 1:N | trip_events | A booking has many timeline events |
 | **pickup_points** | 1:N | trip_stops | A pickup point is used in many trip stops |
 
 <ZoomableMermaid
@@ -357,6 +359,12 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
 | `trip_reports` | Denormalized analytics data |
 | `system_configs` | JSONB key-value configuration |
 | `audit_logs` | Change tracking for critical tables |
+
+#### Driver App
+| Table | Description |
+|-------|-------------|
+| `trip_expenses` | Expenses recorded by drivers during trips |
+| `trip_events` | Timeline of events during trip execution |
 
 ---
 
@@ -899,3 +907,71 @@ notification_channel: APP_PUSH, AUTO_CALL, SMS
 notification_type: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED
 notification_status: PENDING, SENT, DELIVERED, FAILED
 ```
+
+### Driver App
+```sql
+driver_response_status: PENDING, ACCEPTED, REJECTED, NO_RESPONSE
+expense_type: TOLL, PARKING, FUEL, REPAIR, OTHER
+trip_event_type: DRIVER_ACCEPTED, DRIVER_REJECTED, TRIP_STARTED, ARRIVED_PICKUP,
+                 PASSENGER_BOARDED, ARRIVED_STOP, ARRIVED_DESTINATION, TRIP_COMPLETED,
+                 ODOMETER_RECORDED, EXPENSE_ADDED, AUTO_CALL_TRIGGERED
+```
+
+---
+
+## Driver App Entities
+
+### Trip Expenses
+
+Expenses recorded by drivers during trips.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, NOT NULL | Associated booking |
+| expense_type | ENUM | NOT NULL | Type of expense |
+| amount | DECIMAL | NOT NULL | Expense amount |
+| description | TEXT | | Expense description |
+| receipt_url | VARCHAR | | URL to uploaded receipt image |
+| recorded_by | UUID | FK → users, NOT NULL | Driver who recorded |
+| recorded_at | TIMESTAMP | NOT NULL | Recording timestamp |
+| approved_by | UUID | FK → users | Admin who approved |
+| approved_at | TIMESTAMP | | Approval timestamp |
+| is_approved | BOOLEAN | | NULL=pending, true=approved, false=rejected |
+
+**Expense Type Enum Values:**
+- `TOLL` - Highway/road toll
+- `PARKING` - Parking fees
+- `FUEL` - Fuel cost
+- `REPAIR` - Emergency repair
+- `OTHER` - Other expenses
+
+---
+
+### Trip Events
+
+Timeline of events during trip execution.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, NOT NULL | Associated booking |
+| event_type | ENUM | NOT NULL | Type of event |
+| event_data | JSONB | | Additional event-specific data |
+| latitude | DECIMAL | | GPS latitude when event occurred |
+| longitude | DECIMAL | | GPS longitude when event occurred |
+| recorded_by | UUID | FK → users | User who triggered event |
+| recorded_at | TIMESTAMP | NOT NULL | Event timestamp |
+
+**Event Type Enum Values:**
+- `DRIVER_ACCEPTED` - Driver accepted assignment
+- `DRIVER_REJECTED` - Driver rejected assignment
+- `TRIP_STARTED` - Trip started
+- `ARRIVED_PICKUP` - Arrived at pickup point
+- `PASSENGER_BOARDED` - Passenger got in vehicle
+- `ARRIVED_STOP` - Arrived at intermediate stop
+- `ARRIVED_DESTINATION` - Arrived at final destination
+- `TRIP_COMPLETED` - Trip completed
+- `ODOMETER_RECORDED` - Odometer reading recorded
+- `EXPENSE_ADDED` - Expense recorded
+- `AUTO_CALL_TRIGGERED` - Auto-call was triggered
