@@ -4,39 +4,13 @@ const sidebars: SidebarsConfig = {
   docsSidebar: [
     {
       type: 'doc',
-      id: 'intro',
-      label: 'Introduction',
-    },
-    {
-      type: 'doc',
       id: 'business-flows',
       label: 'Business Flows',
     },
     {
       type: 'doc',
-      id: 'database-reference',
-      label: 'Database Reference',
-    },
-    {
-      type: 'category',
-      label: 'Architecture',
-      link: {
-        type: 'doc',
-        id: 'architecture/index',
-      },
-      collapsed: false,
-      items: [
-        'architecture/01-system-design',
-        'architecture/02-backend-architecture',
-        'architecture/03-frontend-architecture',
-        'architecture/04-database-design',
-        'architecture/05-devops-infrastructure',
-        'architecture/06-monitoring-observability',
-        'architecture/07-security',
-        'architecture/08-multi-tenant-saas',
-        'architecture/09-high-concurrency-scaling',
-        'architecture/10-tenant-visual-guide',
-      ],
+      id: 'database-models',
+      label: 'Database Models',
     },
     {
       type: 'category',
@@ -45,7 +19,7 @@ const sidebars: SidebarsConfig = {
         type: 'doc',
         id: 'devops/index',
       },
-      collapsed: true,
+      collapsed: false,
       items: [
         'devops/01-docker',
         'devops/02-docker-compose',
@@ -61,34 +35,15 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Backend (NestJS)',
-      link: {
-        type: 'doc',
-        id: 'backend/backend-index',
-      },
+      label: 'Backend',
       collapsed: true,
-      items: [
-        'backend/request-lifecycle',
-        'backend/modules-dependency-injection',
-        'backend/controllers-routes',
-        'backend/services-business-logic',
-        'backend/guards-authentication',
-        'backend/dtos-validation',
-        'backend/database-typeorm',
-        'backend/error-handling',
-        'backend/multi-tenancy',
-        'backend/testing',
-      ],
+      items: ['backend/vehicle-matching-algorithm'],
     },
     {
       type: 'category',
       label: 'Frontend',
-      link: {
-        type: 'doc',
-        id: 'frontend/index',
-      },
       collapsed: true,
-      items: ['frontend/structure', 'frontend/design-system'],
+      items: ['frontend/design-system'],
     },
   ],
 };
