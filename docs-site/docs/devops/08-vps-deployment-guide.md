@@ -62,13 +62,12 @@ By the end, you'll have:
 | RAM | 2GB | 3GB+ |
 | CPU | 1 vCPU | 2 vCPU |
 | Storage | 20GB SSD | 40GB SSD |
-| OS | Ubuntu 22.04 LTS | Ubuntu 24.04 LTS |
+| OS | Ubuntu 22.04+, Fedora 40+ | Ubuntu 24.04 LTS, Fedora 43 |
 
 ### Before You Start
 
 - [ ] VPS with SSH access (IP address and root password)
-- [ ] Domain name (required for SSL and Vercel frontend)
-- [ ] Point domain A record to VPS IP (e.g., `api.your-domain.com`)
+- [ ] Domain name (optional - can use Cloudflare Tunnel for free HTTPS)
 
 ---
 
@@ -586,6 +585,33 @@ cat /root/cloudflared.log | grep trycloudflare
 
 #### A.4 Create Systemd Service (Persistent)
 
+**Method 1: Using nano (Recommended)**
+
+```bash
+nano /etc/systemd/system/cloudflared.service
+```
+
+Paste this content:
+
+```ini
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:3001
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Save with `Ctrl+X`, then `Y`, then `Enter`.
+
+**Method 2: Using heredoc**
+
 ```bash
 cat > /etc/systemd/system/cloudflared.service << 'EOF'
 [Unit]
@@ -603,14 +629,28 @@ WantedBy=multi-user.target
 EOF
 ```
 
-Enable and start:
+#### A.5 Enable and Start Service
+
 ```bash
 systemctl daemon-reload
+```
+
+```bash
 systemctl enable cloudflared
+```
+
+```bash
 systemctl start cloudflared
 ```
 
-Check logs for URL:
+#### A.6 Verify and Get URL
+
+Check status:
+```bash
+systemctl status cloudflared
+```
+
+Get your HTTPS URL:
 ```bash
 journalctl -u cloudflared | grep trycloudflare
 ```
