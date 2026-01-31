@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from '../../common/enums';
 
 @Injectable()
 export class UsersService {
@@ -48,7 +49,7 @@ export class UsersService {
 
   async findDrivers(): Promise<User[]> {
     return this.userRepository.find({
-      where: { role: 'DRIVER' as any, isActive: true },
+      where: { role: UserRole.DRIVER, isActive: true },
     });
   }
 

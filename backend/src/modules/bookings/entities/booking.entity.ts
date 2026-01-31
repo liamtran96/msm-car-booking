@@ -7,7 +7,12 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { BookingType, BookingStatus, CancellationReason } from '../../../common/enums';
+import {
+  BookingType,
+  BookingStatus,
+  CancellationReason,
+  DriverResponseStatus,
+} from '../../../common/enums';
 import { User } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
 import { Vehicle } from '../../vehicles/entities/vehicle.entity';
@@ -72,10 +77,40 @@ export class Booking {
   @JoinColumn({ name: 'assigned_driver_id' })
   assignedDriver: User;
 
-  @Column({ name: 'estimated_km', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  /** Driver acceptance status from mobile app */
+  @Column({
+    name: 'driver_response',
+    type: 'enum',
+    enum: DriverResponseStatus,
+    default: DriverResponseStatus.PENDING,
+    nullable: true,
+  })
+  driverResponse: DriverResponseStatus;
+
+  /** Timestamp when driver responded */
+  @Column({ name: 'driver_response_at', type: 'timestamptz', nullable: true })
+  driverResponseAt: Date;
+
+  /** Reason if driver rejected the assignment */
+  @Column({ name: 'driver_rejection_reason', type: 'text', nullable: true })
+  driverRejectionReason: string;
+
+  @Column({
+    name: 'estimated_km',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   estimatedKm: number;
 
-  @Column({ name: 'actual_km', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'actual_km',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   actualKm: number;
 
   @Column({ name: 'cancelled_at', nullable: true })
@@ -88,7 +123,12 @@ export class Booking {
   @JoinColumn({ name: 'cancelled_by' })
   cancelledBy: User;
 
-  @Column({ name: 'cancellation_reason', type: 'enum', enum: CancellationReason, nullable: true })
+  @Column({
+    name: 'cancellation_reason',
+    type: 'enum',
+    enum: CancellationReason,
+    nullable: true,
+  })
   cancellationReason: CancellationReason;
 
   @Column({ name: 'cancellation_notes', type: 'text', nullable: true })

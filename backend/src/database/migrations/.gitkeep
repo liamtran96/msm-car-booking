@@ -1,0 +1,3 @@
+# This directory contains TypeORM migrations
+# Run: pnpm migration:generate to create new migrations
+# Run: pnpm migration:run to apply migrations

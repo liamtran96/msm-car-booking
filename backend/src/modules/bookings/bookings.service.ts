@@ -13,7 +13,12 @@ export class BookingsService {
 
   async findAll(): Promise<Booking[]> {
     return this.bookingRepository.find({
-      relations: ['requester', 'department', 'assignedVehicle', 'assignedDriver'],
+      relations: [
+        'requester',
+        'department',
+        'assignedVehicle',
+        'assignedDriver',
+      ],
       order: { scheduledDate: 'DESC', scheduledTime: 'DESC' },
     });
   }
@@ -21,7 +26,12 @@ export class BookingsService {
   async findById(id: string): Promise<Booking> {
     const booking = await this.bookingRepository.findOne({
       where: { id },
-      relations: ['requester', 'department', 'assignedVehicle', 'assignedDriver'],
+      relations: [
+        'requester',
+        'department',
+        'assignedVehicle',
+        'assignedDriver',
+      ],
     });
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
@@ -32,7 +42,12 @@ export class BookingsService {
   async findByStatus(status: BookingStatus): Promise<Booking[]> {
     return this.bookingRepository.find({
       where: { status },
-      relations: ['requester', 'department', 'assignedVehicle', 'assignedDriver'],
+      relations: [
+        'requester',
+        'department',
+        'assignedVehicle',
+        'assignedDriver',
+      ],
       order: { scheduledDate: 'ASC', scheduledTime: 'ASC' },
     });
   }

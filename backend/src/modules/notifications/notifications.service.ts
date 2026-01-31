@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
+import { NotificationStatus } from '../../common/enums';
 
 @Injectable()
 export class NotificationsService {
@@ -21,7 +22,7 @@ export class NotificationsService {
 
   async markAsRead(id: string): Promise<void> {
     await this.notificationRepository.update(id, {
-      status: 'DELIVERED' as any,
+      status: NotificationStatus.DELIVERED,
     });
   }
 }

@@ -6,7 +6,11 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { NotificationChannel, NotificationType, NotificationStatus } from '../../../common/enums';
+import {
+  NotificationChannel,
+  NotificationType,
+  NotificationStatus,
+} from '../../../common/enums';
 import { User } from '../../users/entities/user.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 
@@ -41,7 +45,11 @@ export class Notification {
   @Column({ type: 'text' })
   message: string;
 
-  @Column({ type: 'enum', enum: NotificationStatus, default: NotificationStatus.PENDING })
+  @Column({
+    type: 'enum',
+    enum: NotificationStatus,
+    default: NotificationStatus.PENDING,
+  })
   status: NotificationStatus;
 
   @Column({ name: 'sent_at', nullable: true })

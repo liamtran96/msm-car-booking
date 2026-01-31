@@ -127,3 +127,35 @@ export enum NotificationStatus {
   DELIVERED = 'DELIVERED',
   FAILED = 'FAILED',
 }
+
+// Driver response enums (Driver App)
+export enum DriverResponseStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  NO_RESPONSE = 'NO_RESPONSE',
+}
+
+// Expense enums (Driver App)
+export enum ExpenseType {
+  TOLL = 'TOLL',
+  PARKING = 'PARKING',
+  FUEL = 'FUEL',
+  REPAIR = 'REPAIR',
+  OTHER = 'OTHER',
+}
+
+// Trip event enums (Driver App)
+export enum TripEventType {
+  DRIVER_ACCEPTED = 'DRIVER_ACCEPTED',
+  DRIVER_REJECTED = 'DRIVER_REJECTED',
+  TRIP_STARTED = 'TRIP_STARTED',
+  ARRIVED_PICKUP = 'ARRIVED_PICKUP',
+  PASSENGER_BOARDED = 'PASSENGER_BOARDED',
+  ARRIVED_STOP = 'ARRIVED_STOP',
+  ARRIVED_DESTINATION = 'ARRIVED_DESTINATION',
+  TRIP_COMPLETED = 'TRIP_COMPLETED',
+  ODOMETER_RECORDED = 'ODOMETER_RECORDED',
+  EXPENSE_ADDED = 'EXPENSE_ADDED',
+  AUTO_CALL_TRIGGERED = 'AUTO_CALL_TRIGGERED',
+}

@@ -33,10 +33,20 @@ export class Vehicle {
   @Column({ name: 'vehicle_type', type: 'enum', enum: VehicleType })
   vehicleType: VehicleType;
 
-  @Column({ type: 'enum', enum: VehicleStatus, default: VehicleStatus.AVAILABLE })
+  @Column({
+    type: 'enum',
+    enum: VehicleStatus,
+    default: VehicleStatus.AVAILABLE,
+  })
   status: VehicleStatus;
 
-  @Column({ name: 'current_odometer_km', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'current_odometer_km',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   currentOdometerKm: number;
 
   @Column({ name: 'gps_device_id', nullable: true })

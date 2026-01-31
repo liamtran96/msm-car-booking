@@ -12,6 +12,8 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { GpsModule } from './modules/gps/gps.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { LocationsModule } from './modules/locations/locations.module';
+import { SystemModule } from './modules/system/system.module';
 
 // Configuration
 import databaseConfig from './config/database.config';
@@ -51,6 +53,8 @@ import appConfig from './config/app.config';
     BookingsModule,
     GpsModule,
     NotificationsModule,
+    LocationsModule,
+    SystemModule,
   ],
   controllers: [AppController],
   providers: [AppService],

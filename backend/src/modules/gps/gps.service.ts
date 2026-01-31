@@ -21,15 +21,18 @@ export class GpsService {
       .getMany();
   }
 
-  async getVehicleHistory(vehicleId: string, hours: number = 1): Promise<GpsLocation[]> {
+  async getVehicleHistory(
+    vehicleId: string,
+    hours: number = 1,
+  ): Promise<GpsLocation[]> {
     const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return this.gpsRepository.find({
-      where: {
-        vehicleId,
-      },
-      order: { recordedAt: 'DESC' },
-      take: 1000,
-    });
+    return this.gpsRepository
+      .createQueryBuilder('gps')
+      .where('gps.vehicle_id = :vehicleId', { vehicleId })
+      .andWhere('gps.recorded_at >= :since', { since })
+      .orderBy('gps.recorded_at', 'DESC')
+      .take(1000)
+      .getMany();
   }
 
   async recordPosition(data: {

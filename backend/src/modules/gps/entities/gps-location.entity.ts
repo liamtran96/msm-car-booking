@@ -25,7 +25,13 @@ export class GpsLocation {
   @Column({ type: 'decimal', precision: 11, scale: 8 })
   longitude: number;
 
-  @Column({ name: 'speed_kmh', type: 'decimal', precision: 6, scale: 2, nullable: true })
+  @Column({
+    name: 'speed_kmh',
+    type: 'decimal',
+    precision: 6,
+    scale: 2,
+    nullable: true,
+  })
   speedKmh: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
