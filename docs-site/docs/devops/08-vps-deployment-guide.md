@@ -83,15 +83,16 @@ ssh root@YOUR_VPS_IP
 
 ### 1.2 Update System Packages
 
+**Ubuntu/Debian:**
 ```bash
-# Update package lists
-apt update
-
-# Upgrade installed packages
-apt upgrade -y
-
-# Install essential tools
+apt update && apt upgrade -y
 apt install -y curl wget git nano htop ufw
+```
+
+**Fedora/RHEL:**
+```bash
+dnf update -y
+dnf install -y curl wget git nano htop firewalld
 ```
 
 ### 1.3 Create a Non-Root User (Recommended)
@@ -109,37 +110,30 @@ usermod -aG sudo deploy
 su - deploy
 ```
 
-### 1.4 Configure Firewall (UFW)
+### 1.4 Configure Firewall
 
+**Ubuntu/Debian (UFW):**
 ```bash
-# Allow SSH (important! Don't lock yourself out)
 sudo ufw allow OpenSSH
-
-# Allow HTTP and HTTPS for API
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
-
-# Allow backend port (optional, for direct access during testing)
 sudo ufw allow 3001/tcp
-
-# Enable firewall
 sudo ufw enable
-
-# Check status
 sudo ufw status
 ```
 
-Expected output:
+**Fedora/RHEL (firewalld):**
+```bash
+sudo systemctl enable --now firewalld
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --permanent --add-port=3001/tcp
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-all
 ```
-Status: active
 
-To                         Action      From
---                         ------      ----
-OpenSSH                    ALLOW       Anywhere
-80/tcp                     ALLOW       Anywhere
-443/tcp                    ALLOW       Anywhere
-3001/tcp                   ALLOW       Anywhere
-```
+Expected ports open: 22 (SSH), 80 (HTTP), 443 (HTTPS), 3001 (API)
 
 ### 1.5 Configure SSH Keys (Optional but Recommended)
 
@@ -164,8 +158,9 @@ ssh deploy@YOUR_VPS_IP
 
 ### 2.1 Install Docker Engine
 
+**Ubuntu/Debian:**
 ```bash
-# Remove old versions (if any)
+# Remove old versions
 sudo apt remove docker docker-engine docker.io containerd runc 2>/dev/null
 
 # Install prerequisites
@@ -178,13 +173,28 @@ sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
 # Add Docker repository
 echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Install Docker
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+**Fedora/RHEL:**
+```bash
+# Install prerequisites
+sudo dnf install -y dnf-plugins-core
+
+# Add Docker repository
+sudo dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/fedora/docker-ce.repo
+
+# Install Docker
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Start Docker
+sudo systemctl enable --now docker
 ```
 
 ### 2.2 Configure Docker for Non-Root User
@@ -221,7 +231,9 @@ Hello from Docker!
 
 ## Step 3: Setup Swap Space
 
-For 3GB VPS, add swap to prevent out-of-memory issues:
+For 3GB VPS, add swap to prevent out-of-memory issues.
+
+### Standard Filesystem (ext4)
 
 ```bash
 # Check current swap
@@ -238,6 +250,29 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 
 # Make persistent (survives reboot)
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# Verify
+free -h
+```
+
+### Btrfs Filesystem (Fedora Cloud)
+
+Btrfs requires special handling for swap files:
+
+```bash
+# Check filesystem type
+df -Th /
+
+# If btrfs, use these commands:
+sudo truncate -s 0 /swapfile
+sudo chattr +C /swapfile
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Make persistent
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 # Verify
@@ -506,26 +541,113 @@ Expected output:
 
 ---
 
-## Step 8: Setup SSL with Nginx (Reverse Proxy)
+## Step 8: Setup HTTPS (Choose One Option)
 
-### 8.1 Install Nginx
+### Option A: Cloudflare Tunnel (Quick, No Domain Required)
 
+Best for: Quick setup, testing, no domain needed.
+
+#### A.1 Install cloudflared
+
+**Ubuntu/Debian:**
 ```bash
-sudo apt install -y nginx
+curl -L -o /usr/local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x /usr/local/bin/cloudflared
 ```
 
-### 8.2 Install Certbot for SSL
-
+**Fedora/RHEL:**
 ```bash
-sudo apt install -y certbot python3-certbot-nginx
+curl -L -o /usr/local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x /usr/local/bin/cloudflared
 ```
 
-### 8.3 Configure Nginx for API
+#### A.2 Start Tunnel (Foreground)
+
+```bash
+cloudflared tunnel --url http://localhost:3001
+```
+
+You'll see output like:
+```
+Your quick Tunnel has been created! Visit it at:
+https://random-words-here.trycloudflare.com
+```
+
+#### A.3 Run as Background Service
+
+```bash
+nohup cloudflared tunnel --url http://localhost:3001 > /root/cloudflared.log 2>&1 &
+```
+
+Check your URL:
+```bash
+cat /root/cloudflared.log | grep trycloudflare
+```
+
+#### A.4 Create Systemd Service (Persistent)
+
+```bash
+cat > /etc/systemd/system/cloudflared.service << 'EOF'
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:3001
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Enable and start:
+```bash
+systemctl daemon-reload
+systemctl enable cloudflared
+systemctl start cloudflared
+```
+
+Check logs for URL:
+```bash
+journalctl -u cloudflared | grep trycloudflare
+```
+
+> **Note:** Quick tunnels generate a new URL each restart. For a permanent URL, create a free Cloudflare account and set up a [named tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/).
+
+---
+
+### Option B: Nginx + Let's Encrypt (Domain Required)
+
+Best for: Production, permanent domain.
+
+#### B.1 Install Nginx
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install -y nginx certbot python3-certbot-nginx
+```
+
+**Fedora/RHEL:**
+```bash
+sudo dnf install -y nginx certbot python3-certbot-nginx
+sudo systemctl enable --now nginx
+```
+
+#### B.2 Configure Nginx for API
 
 Create Nginx config:
 
+**Ubuntu/Debian:**
 ```bash
 sudo nano /etc/nginx/sites-available/msm-api
+```
+
+**Fedora/RHEL:**
+```bash
+sudo nano /etc/nginx/conf.d/msm-api.conf
 ```
 
 Add this content (replace `api.your-domain.com` with your actual domain):
@@ -551,23 +673,17 @@ server {
 }
 ```
 
-### 8.4 Enable the Site
+#### B.3 Enable the Site (Ubuntu/Debian only)
 
 ```bash
-# Enable the site
 sudo ln -s /etc/nginx/sites-available/msm-api /etc/nginx/sites-enabled/
-
-# Test Nginx config
 sudo nginx -t
-
-# Reload Nginx
 sudo systemctl reload nginx
 ```
 
-### 8.5 Obtain SSL Certificate
+#### B.4 Obtain SSL Certificate
 
 ```bash
-# Get SSL certificate (follow the prompts)
 sudo certbot --nginx -d api.your-domain.com
 ```
 
@@ -577,11 +693,10 @@ Certbot will:
 3. Update Nginx config automatically
 4. Set up auto-renewal
 
-### 8.6 Verify SSL
+#### B.5 Verify SSL
 
 ```bash
-# Test HTTPS
-curl https://api.your-domain.com/api/v1/health
+curl https://api.your-domain.com/api/v1/
 ```
 
 ---
