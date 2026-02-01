@@ -5,7 +5,7 @@ version: '3.8'
 # Usage: docker compose -f docker-compose.backend.yml up -d
 
 services:
-  # PostgreSQL 18 - Optimized for 3GB VPS
+  # PostgreSQL 18 - Optimized for 4GB VPS
   postgres:
     image: postgres:18-alpine
     container_name: msm_postgres
@@ -19,22 +19,22 @@ services:
       - ./database/init:/docker-entrypoint-initdb.d:ro
     command: >
       postgres
-      -c shared_buffers=256MB
-      -c effective_cache_size=512MB
-      -c maintenance_work_mem=64MB
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c maintenance_work_mem=128MB
       -c work_mem=16MB
       -c max_connections=50
       -c checkpoint_completion_target=0.9
-      -c wal_buffers=8MB
+      -c wal_buffers=16MB
       -c default_statistics_target=100
       -c random_page_cost=1.1
       -c effective_io_concurrency=200
       -c min_wal_size=1GB
       -c max_wal_size=2GB
-      -c max_worker_processes=3
-      -c max_parallel_workers_per_gather=1
-      -c max_parallel_workers=3
-      -c max_parallel_maintenance_workers=1
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+      -c max_parallel_maintenance_workers=2
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-msm_car_booking}"]
       interval: 10s
@@ -43,7 +43,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768M
+          memory: 1G
         reservations:
           memory: 512M
     networks:
