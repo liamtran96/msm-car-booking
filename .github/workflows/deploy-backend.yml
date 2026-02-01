@@ -1,0 +1,41 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docker-compose.backend.yml'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd ~/msm-car-booking
+
+            echo "📥 Pulling latest code..."
+            git pull origin main
+
+            echo "🔨 Rebuilding backend..."
+            docker compose -f docker-compose.backend.yml build backend
+
+            echo "🔄 Restarting services..."
+            docker compose -f docker-compose.backend.yml up -d backend
+
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+
+            echo "✅ Deployment complete!"
+            docker compose -f docker-compose.backend.yml ps
