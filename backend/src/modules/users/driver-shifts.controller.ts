@@ -41,15 +41,23 @@ export class DriverShiftsController {
   @Post()
   @Roles(UserRole.ADMIN, UserRole.PIC)
   @ApiOperation({ summary: 'Create a driver shift (Admin, PIC)' })
-  @ApiResponse({ status: 201, description: 'Shift created', type: DriverShiftResponseDto })
-  create(@Body() createDto: CreateDriverShiftDto): Promise<DriverShiftResponseDto> {
+  @ApiResponse({
+    status: 201,
+    description: 'Shift created',
+    type: DriverShiftResponseDto,
+  })
+  create(
+    @Body() createDto: CreateDriverShiftDto,
+  ): Promise<DriverShiftResponseDto> {
     return this.driverShiftsService.create(createDto);
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.PIC)
   @ApiOperation({ summary: 'Get all driver shifts with filters (Admin, PIC)' })
-  findAll(@Query() filterDto: DriverShiftFilterDto): Promise<DriverShiftResponseDto[]> {
+  findAll(
+    @Query() filterDto: DriverShiftFilterDto,
+  ): Promise<DriverShiftResponseDto[]> {
     return this.driverShiftsService.findAll(filterDto);
   }
 
@@ -91,7 +99,9 @@ export class DriverShiftsController {
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.PIC, UserRole.DRIVER)
   @ApiOperation({ summary: 'Get shift by ID' })
-  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<DriverShiftResponseDto> {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DriverShiftResponseDto> {
     return this.driverShiftsService.findById(id);
   }
 
@@ -109,23 +119,31 @@ export class DriverShiftsController {
   @Roles(UserRole.DRIVER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Start shift (Driver only)' })
-  startShift(@Param('id', ParseUUIDPipe) id: string): Promise<DriverShiftResponseDto> {
-    return this.driverShiftsService.startShift(id);
+  startShift(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<DriverShiftResponseDto> {
+    return this.driverShiftsService.startShift(id, user.id);
   }
 
   @Patch(':id/end')
   @Roles(UserRole.DRIVER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'End shift (Driver only)' })
-  endShift(@Param('id', ParseUUIDPipe) id: string): Promise<DriverShiftResponseDto> {
-    return this.driverShiftsService.endShift(id);
+  endShift(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<DriverShiftResponseDto> {
+    return this.driverShiftsService.endShift(id, user.id);
   }
 
   @Patch(':id/cancel')
   @Roles(UserRole.ADMIN, UserRole.PIC)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel shift (Admin, PIC)' })
-  cancelShift(@Param('id', ParseUUIDPipe) id: string): Promise<DriverShiftResponseDto> {
+  cancelShift(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DriverShiftResponseDto> {
     return this.driverShiftsService.cancelShift(id);
   }
 
@@ -133,7 +151,9 @@ export class DriverShiftsController {
   @Roles(UserRole.ADMIN, UserRole.PIC)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mark shift as absent (Admin, PIC)' })
-  markAbsent(@Param('id', ParseUUIDPipe) id: string): Promise<DriverShiftResponseDto> {
+  markAbsent(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DriverShiftResponseDto> {
     return this.driverShiftsService.markAbsent(id);
   }
 

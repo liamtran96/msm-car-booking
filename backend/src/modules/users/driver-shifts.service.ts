@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -55,12 +56,16 @@ export class DriverShiftsService {
     };
   }
 
-  async create(createDto: CreateDriverShiftDto): Promise<DriverShiftResponseDto> {
+  async create(
+    createDto: CreateDriverShiftDto,
+  ): Promise<DriverShiftResponseDto> {
     const driver = await this.userRepository.findOne({
       where: { id: createDto.driverId, role: UserRole.DRIVER, isActive: true },
     });
     if (!driver) {
-      throw new NotFoundException(`Active driver with ID ${createDto.driverId} not found`);
+      throw new NotFoundException(
+        `Active driver with ID ${createDto.driverId} not found`,
+      );
     }
 
     if (createDto.startTime >= createDto.endTime) {
@@ -74,7 +79,9 @@ export class DriverShiftsService {
       },
     });
     if (existingShift) {
-      throw new ConflictException('Driver already has a shift scheduled for this date');
+      throw new ConflictException(
+        'Driver already has a shift scheduled for this date',
+      );
     }
 
     const shift = this.shiftRepository.create({
@@ -86,18 +93,24 @@ export class DriverShiftsService {
     return this.findById(savedShift.id);
   }
 
-  async findAll(filterDto: DriverShiftFilterDto): Promise<DriverShiftResponseDto[]> {
+  async findAll(
+    filterDto: DriverShiftFilterDto,
+  ): Promise<DriverShiftResponseDto[]> {
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
       .leftJoinAndSelect('shift.driver', 'driver')
       .leftJoinAndSelect('driver.department', 'department');
 
     if (filterDto.driverId) {
-      queryBuilder.andWhere('shift.driverId = :driverId', { driverId: filterDto.driverId });
+      queryBuilder.andWhere('shift.driverId = :driverId', {
+        driverId: filterDto.driverId,
+      });
     }
 
     if (filterDto.date) {
-      queryBuilder.andWhere('shift.shiftDate = :date', { date: filterDto.date });
+      queryBuilder.andWhere('shift.shiftDate = :date', {
+        date: filterDto.date,
+      });
     }
 
     if (filterDto.dateFrom && filterDto.dateTo) {
@@ -106,16 +119,24 @@ export class DriverShiftsService {
         dateTo: filterDto.dateTo,
       });
     } else if (filterDto.dateFrom) {
-      queryBuilder.andWhere('shift.shiftDate >= :dateFrom', { dateFrom: filterDto.dateFrom });
+      queryBuilder.andWhere('shift.shiftDate >= :dateFrom', {
+        dateFrom: filterDto.dateFrom,
+      });
     } else if (filterDto.dateTo) {
-      queryBuilder.andWhere('shift.shiftDate <= :dateTo', { dateTo: filterDto.dateTo });
+      queryBuilder.andWhere('shift.shiftDate <= :dateTo', {
+        dateTo: filterDto.dateTo,
+      });
     }
 
     if (filterDto.status) {
-      queryBuilder.andWhere('shift.status = :status', { status: filterDto.status });
+      queryBuilder.andWhere('shift.status = :status', {
+        status: filterDto.status,
+      });
     }
 
-    queryBuilder.orderBy('shift.shiftDate', 'ASC').addOrderBy('shift.startTime', 'ASC');
+    queryBuilder
+      .orderBy('shift.shiftDate', 'ASC')
+      .addOrderBy('shift.startTime', 'ASC');
 
     const shifts = await queryBuilder.getMany();
     return shifts.map((shift) => this.toResponseDto(shift));
@@ -153,7 +174,10 @@ export class DriverShiftsService {
     return shifts.map((shift) => this.toResponseDto(shift));
   }
 
-  async findAvailableDriversForTime(date: string, time: string): Promise<DriverShiftResponseDto[]> {
+  async findAvailableDriversForTime(
+    date: string,
+    time: string,
+  ): Promise<DriverShiftResponseDto[]> {
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
       .leftJoinAndSelect('shift.driver', 'driver')
@@ -170,7 +194,10 @@ export class DriverShiftsService {
     return shifts.map((shift) => this.toResponseDto(shift));
   }
 
-  async update(id: string, updateDto: UpdateDriverShiftDto): Promise<DriverShiftResponseDto> {
+  async update(
+    id: string,
+    updateDto: UpdateDriverShiftDto,
+  ): Promise<DriverShiftResponseDto> {
     const shift = await this.shiftRepository.findOne({ where: { id } });
     if (!shift) {
       throw new NotFoundException(`Driver shift with ID ${id} not found`);
@@ -184,30 +211,48 @@ export class DriverShiftsService {
 
     if (updateDto.driverId && updateDto.driverId !== shift.driverId) {
       const driver = await this.userRepository.findOne({
-        where: { id: updateDto.driverId, role: UserRole.DRIVER, isActive: true },
+        where: {
+          id: updateDto.driverId,
+          role: UserRole.DRIVER,
+          isActive: true,
+        },
       });
       if (!driver) {
-        throw new NotFoundException(`Active driver with ID ${updateDto.driverId} not found`);
+        throw new NotFoundException(
+          `Active driver with ID ${updateDto.driverId} not found`,
+        );
       }
     }
 
     Object.assign(shift, {
       ...updateDto,
-      shiftDate: updateDto.shiftDate ? new Date(updateDto.shiftDate) : shift.shiftDate,
+      shiftDate: updateDto.shiftDate
+        ? new Date(updateDto.shiftDate)
+        : shift.shiftDate,
     });
 
     await this.shiftRepository.save(shift);
     return this.findById(id);
   }
 
-  async startShift(id: string): Promise<DriverShiftResponseDto> {
+  async startShift(
+    id: string,
+    currentUserId?: string,
+  ): Promise<DriverShiftResponseDto> {
     const shift = await this.shiftRepository.findOne({ where: { id } });
     if (!shift) {
       throw new NotFoundException(`Driver shift with ID ${id} not found`);
     }
 
+    // Add ownership check for drivers
+    if (currentUserId && shift.driverId !== currentUserId) {
+      throw new ForbiddenException('You can only manage your own shifts');
+    }
+
     if (shift.status !== ShiftStatus.SCHEDULED) {
-      throw new BadRequestException(`Cannot start shift with status ${shift.status}`);
+      throw new BadRequestException(
+        `Cannot start shift with status ${shift.status}`,
+      );
     }
 
     shift.status = ShiftStatus.ACTIVE;
@@ -217,14 +262,24 @@ export class DriverShiftsService {
     return this.findById(id);
   }
 
-  async endShift(id: string): Promise<DriverShiftResponseDto> {
+  async endShift(
+    id: string,
+    currentUserId?: string,
+  ): Promise<DriverShiftResponseDto> {
     const shift = await this.shiftRepository.findOne({ where: { id } });
     if (!shift) {
       throw new NotFoundException(`Driver shift with ID ${id} not found`);
     }
 
+    // Add ownership check for drivers
+    if (currentUserId && shift.driverId !== currentUserId) {
+      throw new ForbiddenException('You can only manage your own shifts');
+    }
+
     if (shift.status !== ShiftStatus.ACTIVE) {
-      throw new BadRequestException(`Cannot end shift with status ${shift.status}`);
+      throw new BadRequestException(
+        `Cannot end shift with status ${shift.status}`,
+      );
     }
 
     shift.status = ShiftStatus.COMPLETED;
@@ -256,7 +311,9 @@ export class DriverShiftsService {
     }
 
     if (shift.status !== ShiftStatus.SCHEDULED) {
-      throw new BadRequestException(`Cannot mark absent a shift with status ${shift.status}`);
+      throw new BadRequestException(
+        `Cannot mark absent a shift with status ${shift.status}`,
+      );
     }
 
     shift.status = ShiftStatus.ABSENT;
