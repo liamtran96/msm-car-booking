@@ -25,17 +25,17 @@ jobs:
           script: |
             cd ~/msm-car-booking
 
-            echo "📥 Pulling latest code..."
+            echo "Pulling latest code..."
             git pull origin main
 
-            echo "🔨 Rebuilding backend..."
+            echo "Rebuilding backend..."
             docker compose -f docker-compose.backend.yml build backend
 
-            echo "🔄 Restarting services..."
+            echo "Restarting services..."
             docker compose -f docker-compose.backend.yml up -d backend
 
-            echo "🧹 Cleaning up old images..."
+            echo "Cleaning up old images..."
             docker image prune -f
 
-            echo "✅ Deployment complete!"
+            echo "Deployment complete!"
             docker compose -f docker-compose.backend.yml ps

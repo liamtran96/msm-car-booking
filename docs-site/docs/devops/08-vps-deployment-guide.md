@@ -921,6 +921,113 @@ sudo certbot renew
 
 ---
 
+---
+
+## Step 11: Auto-Deploy with GitHub Actions
+
+Set up automatic deployment when you push to `main` branch.
+
+### 11.1 Create Deploy User (Security Best Practice)
+
+Never use root for automated deployments. Create a dedicated user:
+
+```bash
+# Create deploy user
+useradd -m -s /bin/bash deploy
+
+# Add to docker group
+usermod -aG docker deploy
+
+# Move project to deploy user's home
+mv /root/msm-car-booking /home/deploy/
+chown -R deploy:deploy /home/deploy/msm-car-booking
+```
+
+### 11.2 Generate SSH Key for GitHub Actions
+
+```bash
+# Switch to deploy user
+su - deploy
+
+# Generate SSH key
+ssh-keygen -t ed25519 -f ~/.ssh/github_actions -N ""
+
+# Add to authorized keys
+cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+# Display private key (copy this)
+cat ~/.ssh/github_actions
+```
+
+### 11.3 Add GitHub Secrets
+
+Go to: `https://github.com/YOUR_ORG/msm-car-booking/settings/secrets/actions`
+
+Add these secrets:
+
+| Secret Name | Value |
+|-------------|-------|
+| `VPS_HOST` | Your VPS IP (e.g., `14.225.222.12`) |
+| `VPS_USERNAME` | `deploy` |
+| `VPS_PORT` | `22` |
+| `VPS_SSH_KEY` | Private key from step 11.2 |
+
+### 11.4 Workflow File
+
+The workflow is already created at `.github/workflows/deploy-backend.yml`:
+
+```yaml
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docker-compose.backend.yml'
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd ~/msm-car-booking
+            git pull origin main
+            docker compose -f docker-compose.backend.yml build backend
+            docker compose -f docker-compose.backend.yml up -d backend
+            docker image prune -f
+```
+
+### 11.5 How It Works
+
+```
+Push to main → GitHub Actions triggers → SSH to VPS → Pull & rebuild → Done
+     │                   │                    │              │
+     └── backend/** ─────┘                    │              │
+         changes only                         │              │
+                                              └── deploy user (not root)
+```
+
+### 11.6 Test Deployment
+
+1. Make a small change to any file in `backend/`
+2. Commit and push to `main`
+3. Go to GitHub → Actions tab → Watch the deployment
+4. Verify on VPS: `docker compose -f docker-compose.backend.yml ps`
+
+---
+
 **Next Steps:**
 - [Monitoring & Logging](./07-monitoring.md) - Set up monitoring
 - [Prometheus & Grafana](./09-prometheus-grafana.md) - Advanced metrics
