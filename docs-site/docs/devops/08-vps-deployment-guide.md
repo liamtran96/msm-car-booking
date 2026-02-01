@@ -59,7 +59,7 @@ By the end, you'll have:
 
 | Resource | Minimum | Recommended |
 |----------|---------|-------------|
-| RAM | 2GB | 3GB+ |
+| RAM | 2GB | 4GB |
 | CPU | 1 vCPU | 2 vCPU |
 | Storage | 20GB SSD | 40GB SSD |
 | OS | Ubuntu 22.04+, Fedora 40+ | Ubuntu 24.04 LTS, Fedora 43 |
@@ -230,7 +230,7 @@ Hello from Docker!
 
 ## Step 3: Setup Swap Space
 
-For 3GB VPS, add swap to prevent out-of-memory issues.
+Add swap to prevent out-of-memory issues during peak load.
 
 ### Standard Filesystem (ext4)
 
@@ -292,6 +292,70 @@ Swap:         2.0Gi         0B        2.0Gi
 echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
+
+---
+
+## Memory Optimization Settings
+
+### 4GB VPS Configuration (Recommended)
+
+The default Docker Compose configuration is optimized for 4GB VPS. Here's the memory budget:
+
+| Service | Memory Limit | Reserved | Notes |
+|---------|-------------|----------|-------|
+| PostgreSQL | 1GB | 512MB | Largest consumer |
+| Backend | 640MB | 384MB | Node.js heap capped |
+| Frontend | 128MB | 64MB | Static files only |
+| Nginx | 128MB | 64MB | Reverse proxy |
+| **Total** | ~1.9GB | ~1GB | |
+| **Headroom** | ~2GB | | For OS, buffers, spikes |
+
+### PostgreSQL Settings (4GB VPS)
+
+```bash
+# Applied via docker-compose.yml command
+shared_buffers=512MB          # 12.5% of RAM
+effective_cache_size=1536MB   # ~40% of RAM
+maintenance_work_mem=128MB    # For VACUUM, CREATE INDEX
+work_mem=16MB                 # Per-operation memory
+max_connections=50            # Reduced from default 100
+wal_buffers=16MB
+max_worker_processes=4
+max_parallel_workers=4
+max_parallel_workers_per_gather=2
+```
+
+### Node.js Settings
+
+```bash
+# Applied via environment variable
+NODE_OPTIONS="--max-old-space-size=512"
+```
+
+### Check Memory Usage
+
+```bash
+# Real-time monitoring
+watch -n 5 'free -h && echo && docker stats --no-stream'
+
+# Check container memory
+docker stats
+```
+
+### 3GB VPS Configuration (Minimum)
+
+If using a 3GB VPS, reduce the settings:
+
+| Setting | 4GB Value | 3GB Value |
+|---------|-----------|-----------|
+| PostgreSQL limit | 1GB | 768MB |
+| shared_buffers | 512MB | 256MB |
+| effective_cache_size | 1536MB | 512MB |
+| maintenance_work_mem | 128MB | 64MB |
+| Nginx limit | 128MB | 64MB |
+| max_worker_processes | 4 | 3 |
+
+Edit `docker-compose.yml` to apply 3GB settings if needed.
 
 ---
 
@@ -399,7 +463,7 @@ Add this content:
 version: '3.8'
 
 services:
-  # PostgreSQL 18 - Optimized for 3GB VPS
+  # PostgreSQL 18 - Optimized for 4GB VPS
   postgres:
     image: postgres:18-alpine
     container_name: msm_postgres
@@ -413,13 +477,16 @@ services:
       - ./database/init:/docker-entrypoint-initdb.d:ro
     command: >
       postgres
-      -c shared_buffers=256MB
-      -c effective_cache_size=512MB
-      -c maintenance_work_mem=64MB
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c maintenance_work_mem=128MB
       -c work_mem=16MB
       -c max_connections=50
       -c checkpoint_completion_target=0.9
-      -c wal_buffers=8MB
+      -c wal_buffers=16MB
+      -c max_worker_processes=4
+      -c max_parallel_workers=4
+      -c max_parallel_workers_per_gather=2
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-msm_car_booking}"]
       interval: 10s
@@ -428,7 +495,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768M
+          memory: 1G
         reservations:
           memory: 512M
     networks:

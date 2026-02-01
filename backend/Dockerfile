@@ -1,6 +1,6 @@
 # =============================================================================
 # MSM Car Booking - Backend Dockerfile
-# Optimized for 3GB VPS with multi-stage build
+# Optimized for 4GB VPS with multi-stage build
 # NestJS 11.1.12 + Node.js 22 Alpine
 # =============================================================================
 
