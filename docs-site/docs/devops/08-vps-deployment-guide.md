@@ -929,9 +929,25 @@ Set up automatic deployment when you push to `main` branch.
 
 ### 11.1 Create Deploy User (Security Best Practice)
 
-Never use root for automated deployments. Create a dedicated user:
+Never use root for automated deployments. Create a dedicated user.
+
+#### What's Preserved When Moving Project Folder
+
+| Component | Status | Reason |
+|-----------|--------|--------|
+| Database data | Safe | Stored in Docker volume, not project folder |
+| Environment (.env) | Safe | Moves with the project |
+| Docker images | Safe | Stored in Docker, not project folder |
+| Cloudflared tunnel | Safe | Connects to localhost:3001 |
+| Firewall rules | Safe | Not related to project location |
+
+#### Migration Steps (Root to Deploy User)
 
 ```bash
+# As root: Stop containers first
+cd /root/msm-car-booking
+docker compose -f docker-compose.backend.yml down
+
 # Create deploy user
 useradd -m -s /bin/bash deploy
 
@@ -941,6 +957,14 @@ usermod -aG docker deploy
 # Move project to deploy user's home
 mv /root/msm-car-booking /home/deploy/
 chown -R deploy:deploy /home/deploy/msm-car-booking
+
+# Switch to deploy user and restart
+su - deploy
+cd ~/msm-car-booking
+docker compose -f docker-compose.backend.yml up -d
+
+# Verify
+curl http://localhost:3001/api/v1/
 ```
 
 ### 11.2 Generate SSH Key for GitHub Actions
