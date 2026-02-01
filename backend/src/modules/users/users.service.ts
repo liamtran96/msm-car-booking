@@ -50,7 +50,15 @@ export class UsersService {
   async findAll(
     filterDto: UserFilterDto,
   ): Promise<PaginatedResponseDto<UserResponseDto>> {
-    const { page = 1, limit = 10, search, role, userSegment, departmentId, isActive } = filterDto;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      role,
+      userSegment,
+      departmentId,
+      isActive,
+    } = filterDto;
 
     const where: FindOptionsWhere<User> = {};
 
@@ -127,7 +135,10 @@ export class UsersService {
     return drivers.map((driver) => this.toResponseDto(driver));
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
     const user = await this.findByIdInternal(id);
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
@@ -151,7 +162,9 @@ export class UsersService {
     const { currentPassword, newPassword, confirmPassword } = changePasswordDto;
 
     if (newPassword !== confirmPassword) {
-      throw new BadRequestException('New password and confirmation do not match');
+      throw new BadRequestException(
+        'New password and confirmation do not match',
+      );
     }
 
     const user = await this.userRepository.findOne({ where: { id } });
@@ -159,13 +172,18 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!isCurrentPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }
 
     if (currentPassword === newPassword) {
-      throw new BadRequestException('New password must be different from current password');
+      throw new BadRequestException(
+        'New password must be different from current password',
+      );
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
@@ -174,7 +192,10 @@ export class UsersService {
     return { message: 'Password changed successfully' };
   }
 
-  async resetPassword(id: string, newPassword: string): Promise<{ message: string }> {
+  async resetPassword(
+    id: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);

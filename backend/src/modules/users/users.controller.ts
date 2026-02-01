@@ -41,7 +41,11 @@ export class UsersController {
   @Post()
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new user (Admin only)' })
-  @ApiResponse({ status: 201, description: 'User created', type: UserResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User created',
+    type: UserResponseDto,
+  })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
@@ -50,7 +54,9 @@ export class UsersController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.PIC)
   @ApiOperation({ summary: 'Get all users with pagination (Admin, PIC)' })
-  findAll(@Query() filterDto: UserFilterDto): Promise<PaginatedResponseDto<UserResponseDto>> {
+  findAll(
+    @Query() filterDto: UserFilterDto,
+  ): Promise<PaginatedResponseDto<UserResponseDto>> {
     return this.usersService.findAll(filterDto);
   }
 

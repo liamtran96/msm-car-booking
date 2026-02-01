@@ -46,7 +46,10 @@ export class UserResponseDto {
   @Expose()
   departmentId: string | null;
 
-  @ApiPropertyOptional({ description: 'Department details', type: DepartmentDto })
+  @ApiPropertyOptional({
+    description: 'Department details',
+    type: DepartmentDto,
+  })
   @Expose()
   @Type(() => DepartmentDto)
   department: DepartmentDto | null;

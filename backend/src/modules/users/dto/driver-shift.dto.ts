@@ -17,7 +17,10 @@ export class CreateDriverShiftDto {
   @IsNotEmpty()
   driverId: string;
 
-  @ApiProperty({ description: 'Shift date (YYYY-MM-DD)', example: '2026-02-01' })
+  @ApiProperty({
+    description: 'Shift date (YYYY-MM-DD)',
+    example: '2026-02-01',
+  })
   @IsDateString()
   @IsNotEmpty()
   shiftDate: string;

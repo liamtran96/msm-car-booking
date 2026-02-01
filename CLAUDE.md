@@ -131,6 +131,11 @@ You are a senior full-stack developer with expertise in writing production-quali
 
 #### 1. Code Implementation
 - **CRITICAL:** Follow the workflow system in `.claude/workflows/` - start with `00-main.md`
+- **CRITICAL:** Before implementing any feature, READ the documentation in `docs-site/docs/` first to understand:
+  - Business logic and workflows (`business-flows.md`, `system-workflows.md`)
+  - Backend patterns (`backend/vehicle-matching-algorithm.md`)
+  - Frontend design system (`frontend/design-system.md`)
+  - DevOps setup (`devops/`)
 - For complex tasks, create bite-sized implementation plan in `plans/` directory
 - Write clean, readable, and maintainable code
 - Follow established architectural patterns

@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, IsUUID, IsBoolean } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsBoolean,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { UserRole, UserSegment } from '../../../common/enums';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
@@ -26,10 +32,10 @@ export class UserFilterDto extends PaginationQueryDto {
   departmentId?: string;
 
   @ApiPropertyOptional({ description: 'Filter by active status' })
-  @Transform(({ value }) => {
+  @Transform(({ value }): boolean | undefined => {
     if (value === 'true') return true;
     if (value === 'false') return false;
-    return value;
+    return value as boolean | undefined;
   })
   @IsBoolean()
   @IsOptional()
