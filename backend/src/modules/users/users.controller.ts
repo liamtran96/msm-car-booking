@@ -23,6 +23,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserFilterDto } from './dto/user-filter.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { JwtAuthGuard, RolesGuard } from '../../common/guards';
 import { Roles, CurrentUser } from '../../common/decorators';
@@ -117,9 +118,9 @@ export class UsersController {
   @ApiOperation({ summary: 'Reset user password (Admin only)' })
   resetPassword(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body('newPassword') newPassword: string,
+    @Body() resetPasswordDto: ResetPasswordDto,
   ): Promise<{ message: string }> {
-    return this.usersService.resetPassword(id, newPassword);
+    return this.usersService.resetPassword(id, resetPasswordDto.newPassword);
   }
 
   @Delete(':id')

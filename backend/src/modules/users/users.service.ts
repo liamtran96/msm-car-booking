@@ -118,6 +118,8 @@ export class UsersService {
   }
 
   async findAvailableDrivers(): Promise<UserResponseDto[]> {
+    // TODO: Implement proper availability logic based on driver shifts and current bookings
+    // For now, returns all active drivers. Will be enhanced when driver shift module is integrated.
     const drivers = await this.userRepository.find({
       where: { role: UserRole.DRIVER, isActive: true },
       relations: ['department'],

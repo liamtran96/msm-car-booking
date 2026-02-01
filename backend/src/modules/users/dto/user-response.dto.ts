@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { UserRole, UserSegment } from '../../../common/enums';
 
-class DepartmentDto {
+export class DepartmentDto {
   @ApiProperty()
   @Expose()
   id: string;
