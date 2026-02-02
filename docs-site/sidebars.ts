@@ -33,6 +33,7 @@ const sidebars: SidebarsConfig = {
         'devops/05-cicd-jenkins',
         'devops/06-deployment',
         'devops/07-monitoring',
+        'devops/08-vps-deployment-guide',
         'devops/09-prometheus-grafana',
         'devops/prometheus-grafana-setup',
         'devops/cheatsheet',
