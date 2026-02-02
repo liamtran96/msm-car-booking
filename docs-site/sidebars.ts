@@ -41,8 +41,15 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Backend',
+      link: {
+        type: 'doc',
+        id: 'backend/index',
+      },
       collapsed: true,
-      items: ['backend/vehicle-matching-algorithm'],
+      items: [
+        'backend/database-setup',
+        'backend/vehicle-matching-algorithm',
+      ],
     },
     {
       type: 'category',

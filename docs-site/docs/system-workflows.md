@@ -57,18 +57,7 @@ flowchart TB
     BOOKING --> NOTIFY
 ```
 
-### Database Tables Mapping
-
-| System Module | Database Tables |
-|--------------|-----------------|
-| **Booking & Dispatching** | `bookings`, `trip_stops`, `booking_sequences`, `external_dispatches`, `pickup_points` |
-| **Fleet Management** | `vehicles`, `km_quotas`, `gps_locations`, `odometer_logs`, `vehicle_maintenance` |
-| **User Management** | `users`, `departments`, `driver_shifts` |
-| **Notifications** | `notifications` |
-| **Reporting & Config** | `trip_reports`, `audit_logs`, `system_configs` |
-| **Driver App** | `trip_expenses`, `trip_events` |
-
-**Total: 19 tables**
+> **Database Models:** For complete database schema, entities, and table relationships, see [Database Models](./database-models.mdx).
 
 ---
 

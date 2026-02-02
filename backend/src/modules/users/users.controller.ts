@@ -86,6 +86,7 @@ export class UsersController {
     @CurrentUser() user: User,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { role, ...allowedUpdates } = updateUserDto;
     return this.usersService.update(user.id, allowedUpdates as UpdateUserDto);
   }
