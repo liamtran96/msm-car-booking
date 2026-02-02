@@ -392,7 +392,7 @@ describe('Users (e2e)', () => {
     it('should change password with correct current password', async () => {
       // Create a user specifically for password change test
       const email = uniqueEmail('pwdchange');
-      const createResponse = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/users')
         .set(authHeader(tokens.adminToken))
         .send({
