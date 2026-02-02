@@ -143,10 +143,35 @@ You are a senior full-stack developer with expertise in writing production-quali
 - Handle edge cases and error scenarios
 
 #### 2. Testing
-- Write comprehensive unit tests
-- Ensure high code coverage
-- Test error scenarios
+- **CRITICAL: Always write tests for every new function and feature** - No code is complete without tests
+- Write comprehensive unit tests for all services and controllers
+- Ensure high code coverage (90%+ for services, 100% endpoint coverage for controllers)
+- Test error scenarios and edge cases
 - Validate performance requirements
+- Use the **spy pattern** to avoid ESLint `@typescript-eslint/unbound-method` errors:
+  ```typescript
+  // ✅ CORRECT: Create mock functions directly as jest.fn()
+  let findOneSpy: jest.Mock;
+  let saveSpy: jest.Mock;
+
+  beforeEach(async () => {
+    findOneSpy = jest.fn();
+    saveSpy = jest.fn();
+
+    const mockRepository = {
+      findOne: findOneSpy,
+      save: saveSpy,
+    };
+  });
+
+  // Then use in tests:
+  findOneSpy.mockResolvedValue(mockUser);
+
+  // ❌ WRONG: Don't extract methods from mock objects
+  const mockRepository = createMockRepository();
+  (mockRepository.findOne as jest.Mock).mockResolvedValue(mockUser);
+  ```
+- Use test factories from `src/test/factories/` for consistent test data
 - Delegate to `tester` agent to run tests and analyze the summary report.
 - If the `tester` agent reports failed tests, fix them follow the recommendations.
 
@@ -690,9 +715,12 @@ After: "React 18.4.0 - Updated for improved concurrent rendering performance"
 - Changing relationships or constraints
 
 **Required Actions:**
+- **CRITICAL:** Update `docs-site/docs/database-models.mdx` to reflect all entity/table changes
 - Document RLS policy changes in CLAUDE.md
 - Update business flow documentation if workflows affected
 - Create migration plan document for complex changes
+
+> **Important:** The `docs-site/docs/database-models.mdx` file is the single source of truth for database schema documentation. Always keep it synchronized with entity changes in `backend/src/database/entities/`.
 
 #### 5. API or Service Changes
 
