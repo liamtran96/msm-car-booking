@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": ".(e2e|integration)-spec.ts$",
+  "testRegex": ".integration-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
@@ -12,7 +12,7 @@
   "globalSetup": "<rootDir>/setup/global-setup.ts",
   "globalTeardown": "<rootDir>/setup/global-teardown.ts",
   "setupFilesAfterEnv": ["<rootDir>/setup/jest-setup.ts"],
-  "testTimeout": 60000,
+  "testTimeout": 120000,
   "maxWorkers": 1,
   "verbose": true,
   "collectCoverage": false

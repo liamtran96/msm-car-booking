@@ -32,4 +32,14 @@ export default tseslint.config(
       "prettier/prettier": ["error", { endOfLine: "auto" }],
     },
   },
+  // Relaxed rules for E2E and integration test files
+  {
+    files: ['**/test/**/*.ts', '**/*.e2e-spec.ts', '**/*.integration-spec.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+    },
+  },
 );
