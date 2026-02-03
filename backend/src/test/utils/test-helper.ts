@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Type } from '@nestjs/common';
+import { Type, Provider } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 /**
@@ -14,7 +14,7 @@ export const createMockGuard = () => ({
  */
 export async function createTestingModule(options: {
   controllers?: Type<unknown>[];
-  providers?: unknown[];
+  providers?: Provider[];
   imports?: Type<unknown>[];
 }): Promise<TestingModule> {
   const moduleBuilder = Test.createTestingModule({

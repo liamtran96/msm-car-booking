@@ -5,7 +5,9 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
 
-type UserWithoutPassword = Omit<User, 'passwordHash'>;
+type UserWithoutPassword = Omit<User, 'passwordHash'> & {
+  managerId?: string | null;
+};
 
 @Injectable()
 export class AuthService {
@@ -27,6 +29,9 @@ export class AuthService {
         phone: user.phone,
         role: user.role,
         userSegment: user.userSegment,
+        positionLevel: user.positionLevel,
+        managerId: user.managerId,
+        manager: user.manager,
         departmentId: user.departmentId,
         department: user.department,
         isActive: user.isActive,

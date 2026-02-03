@@ -6,18 +6,25 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import {
   BookingType,
   BookingStatus,
   CancellationReason,
   DriverResponseStatus,
+  ApprovalType,
 } from '../../../common/enums';
 import { User } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
 import { Vehicle } from '../../vehicles/entities/vehicle.entity';
 
 @Entity('bookings')
+@Index('idx_bookings_status_scheduled', ['status', 'scheduledDate'])
+@Index('idx_bookings_requester', ['requesterId'])
+@Index('idx_bookings_driver', ['assignedDriverId'])
+@Index('idx_bookings_vehicle', ['assignedVehicleId'])
+@Index('idx_bookings_department', ['departmentId'])
 export class Booking {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -44,6 +51,21 @@ export class Booking {
 
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;
+
+  @Column({
+    name: 'approval_type',
+    type: 'enum',
+    enum: ApprovalType,
+    nullable: true,
+  })
+  approvalType: ApprovalType;
+
+  @Column({
+    name: 'is_business_trip',
+    type: 'boolean',
+    default: true,
+  })
+  isBusinessTrip: boolean;
 
   @Column({ name: 'scheduled_date', type: 'date' })
   scheduledDate: Date;

@@ -12,6 +12,10 @@ NestJS-based backend API for the MSM Car Booking system.
 
 ## Documentation Index
 
+### Security
+
+- **[Security Features](./security.md)** - Authentication, rate limiting, CORS, HTTP headers, and WebSocket security
+
 ### Database
 
 - **[Database Setup & Migrations](./database-setup.md)** - Development and production database initialization, migration workflow, and best practices

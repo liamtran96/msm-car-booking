@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { BookingsService } from './bookings.service';
 import { Booking } from './entities/booking.entity';
+import { BookingSequence } from './entities/booking-sequence.entity';
+import { User } from '../users/entities/user.entity';
 import { BookingStatus } from '../../common/enums';
 import {
   createMockBooking,
@@ -12,6 +15,8 @@ import {
 import { createMockRepository } from '../../test/mocks/repository.mock';
 import { generateUuid } from '../../test/utils/test-helper';
 import { NotFoundException } from '@nestjs/common';
+import { ApprovalsService } from '../approvals/approvals.service';
+import { ChatService } from '../chat/chat.service';
 
 describe('BookingsService', () => {
   let service: BookingsService;
@@ -25,14 +30,41 @@ describe('BookingsService', () => {
     'assignedDriver',
   ];
 
+  const mockApprovalsService = {
+    createApproval: jest.fn(),
+    createApprovalWithManager: jest.fn(),
+    determineApprovalType: jest.fn(),
+    approve: jest.fn(),
+    reject: jest.fn(),
+  };
+
+  const mockChatService = {
+    onDriverAssigned: jest.fn(),
+    archiveRoom: jest.fn(),
+    closeRoom: jest.fn(),
+  };
+
+  const mockDataSource = {
+    transaction: jest.fn(),
+  };
+
   beforeEach(async () => {
     findSpy = jest.fn();
     findOneSpy = jest.fn();
 
-    const mockRepository = {
+    const mockBookingRepository = {
       ...createMockRepository<Booking>(),
       find: findSpy,
       findOne: findOneSpy,
+    };
+
+    const mockUserRepository = {
+      ...createMockRepository<User>(),
+      findOne: jest.fn(),
+    };
+
+    const mockSequenceRepository = {
+      ...createMockRepository<BookingSequence>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -40,7 +72,27 @@ describe('BookingsService', () => {
         BookingsService,
         {
           provide: getRepositoryToken(Booking),
-          useValue: mockRepository,
+          useValue: mockBookingRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: mockUserRepository,
+        },
+        {
+          provide: getRepositoryToken(BookingSequence),
+          useValue: mockSequenceRepository,
+        },
+        {
+          provide: DataSource,
+          useValue: mockDataSource,
+        },
+        {
+          provide: ApprovalsService,
+          useValue: mockApprovalsService,
+        },
+        {
+          provide: ChatService,
+          useValue: mockChatService,
         },
       ],
     }).compile();

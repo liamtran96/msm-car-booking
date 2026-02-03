@@ -67,7 +67,10 @@ flowchart TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING: User creates booking
+    [*] --> PENDING_APPROVAL: User creates booking
+
+    PENDING_APPROVAL --> PENDING: Approved or Auto-approved
+    PENDING_APPROVAL --> CANCELLED: Rejected by manager
 
     PENDING --> CONFIRMED: System validates
     PENDING --> CANCELLED: User cancels
@@ -88,6 +91,56 @@ stateDiagram-v2
     CANCELLED --> [*]
     REDIRECTED_EXTERNAL --> [*]
 ```
+
+### 1.1a Booking Approval Workflow
+
+```mermaid
+flowchart TD
+    START([User Creates Booking]) --> CHECK{Determine Approval Type}
+
+    CHECK --> |Management Level<br/>MGR and above| AUTO[AUTO_APPROVED<br/>No approval needed]
+    CHECK --> |SIC Employee<br/>DAILY + Business Trip| CC[CC_ONLY<br/>Notify manager]
+    CHECK --> |Other Employees<br/>SOMETIMES or non-business| MGR[MANAGER_APPROVAL<br/>Requires approval]
+
+    AUTO --> PENDING[Status: PENDING<br/>Proceed to vehicle matching]
+    CC --> NOTIFY_CC[Send CC Notification<br/>to Line Manager]
+    NOTIFY_CC --> PENDING
+
+    MGR --> PENDING_APPROVAL[Status: PENDING_APPROVAL]
+    PENDING_APPROVAL --> NOTIFY_MGR[Send Approval Request<br/>to Line Manager]
+    NOTIFY_MGR --> WAIT{Manager Response}
+
+    WAIT --> |Approved| APPROVED[Status: APPROVED]
+    WAIT --> |Rejected| REJECTED[Status: REJECTED]
+    WAIT --> |No Response| REMIND{Reminder Sent?}
+
+    REMIND --> |< 3 reminders| SEND_REMINDER[Send Reminder<br/>Notification]
+    SEND_REMINDER --> WAIT
+    REMIND --> |>= 3 reminders| EXPIRED[Status: EXPIRED]
+
+    APPROVED --> PENDING
+    REJECTED --> CANCELLED([Status: CANCELLED])
+    EXPIRED --> CANCELLED
+
+    subgraph ApprovalTypes["Approval Type Rules"]
+        direction TB
+        R1[MGR+ Position Level → AUTO_APPROVED]
+        R2[DAILY Segment + Business Trip → CC_ONLY]
+        R3[All Others → MANAGER_APPROVAL]
+    end
+```
+
+**Position Level Hierarchy:**
+| Level | Code | Auto-Approve? |
+|-------|------|---------------|
+| Staff | STAFF | No |
+| Senior | SENIOR | No |
+| Team Lead | TEAM_LEAD | No |
+| Manager | MGR | ✅ Yes |
+| Senior Manager | SR_MGR | ✅ Yes |
+| Director | DIRECTOR | ✅ Yes |
+| Vice President | VP | ✅ Yes |
+| C-Level | C_LEVEL | ✅ Yes |
 
 ### 1.2 Booking Creation Process
 
@@ -424,6 +477,118 @@ flowchart TD
 ```
 
 **Database:** `notifications` table linked to `users` and `bookings`
+
+---
+
+## 4a. In-App Chat System (Fixed Route Communication)
+
+### 4a.1 Chat System Overview
+
+For BLOCK_SCHEDULE bookings (fixed route shuttles), the system provides direct communication between employees and drivers for schedule changes.
+
+```mermaid
+flowchart TD
+    subgraph Trigger["Chat Room Creation"]
+        T1[BLOCK_SCHEDULE Booking Created]
+        T2[Driver Assigned to Booking]
+        T3[Auto-create Chat Room]
+
+        T1 --> T2 --> T3
+    end
+
+    subgraph ChatRoom["Chat Room"]
+        CR1[Employee ID]
+        CR2[Driver ID]
+        CR3[Booking ID]
+        CR4[Status: ACTIVE]
+    end
+
+    T3 --> ChatRoom
+
+    subgraph Communication["Communication"]
+        C1[Employee sends message]
+        C2[Real-time WebSocket delivery]
+        C3[Driver receives notification]
+        C4[Driver responds]
+
+        C1 --> C2 --> C3 --> C4
+    end
+
+    ChatRoom --> Communication
+
+    subgraph ScheduleChange["Schedule Change Notifications"]
+        SC1[Employee returns late]
+        SC2[Early/late departure]
+        SC3[Send schedule_change message]
+        SC4[Push notification to driver]
+
+        SC1 --> SC3
+        SC2 --> SC3
+        SC3 --> SC4
+    end
+
+    Communication --> ScheduleChange
+```
+
+### 4a.2 Chat Message Flow
+
+```mermaid
+sequenceDiagram
+    participant E as Employee App
+    participant WS as WebSocket Gateway
+    participant API as Chat Service
+    participant DB as Database
+    participant D as Driver App
+
+    E->>WS: Connect (JWT Auth)
+    WS->>API: Authenticate user
+    WS-->>E: Connected
+
+    E->>WS: joinRoom(chatRoomId)
+    WS->>DB: Verify user in room
+    WS-->>E: Joined room
+
+    E->>WS: sendMessage(content)
+    WS->>API: Save message
+    API->>DB: INSERT chat_message
+    API-->>WS: Message saved
+
+    WS->>D: newMessage (real-time)
+    WS->>API: Send push notification
+    API->>D: Push notification (if offline)
+
+    D->>WS: markRead(messageId)
+    WS->>DB: UPDATE status = READ
+```
+
+### 4a.3 Schedule Change Message
+
+When an employee needs to notify the driver about schedule changes:
+
+```mermaid
+flowchart LR
+    subgraph Input["Schedule Change"]
+        I1[New return time]
+        I2[Change reason]
+    end
+
+    subgraph Message["Message Created"]
+        M1["message_type: 'schedule_change'"]
+        M2["metadata: { newTime, reason }"]
+    end
+
+    subgraph Notification["Notifications"]
+        N1[WebSocket real-time]
+        N2[Push notification]
+        N3[SCHEDULE_CHANGE_ALERT]
+    end
+
+    Input --> Message --> Notification
+```
+
+**Database Tables:**
+- `chat_rooms` - Links booking to employee and driver
+- `chat_messages` - Individual messages with delivery status
 
 ---
 

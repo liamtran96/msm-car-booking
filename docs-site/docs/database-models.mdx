@@ -34,6 +34,15 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
 | **users** | 1:N | audit_logs | A user's changes are tracked in audit logs |
 | **users** | 1:N | trip_reports | A driver appears in many trip reports |
 | **users** | 1:N | trip_reports | A requester appears in many trip reports |
+| **users** | 1:N | users | A manager manages many users (self-referencing) |
+| **users** | 1:N | booking_approvals | A user (manager) approves many booking requests |
+| **users** | 1:N | booking_approvals | A user (requester) creates many approval requests |
+| **users** | 1:N | chat_rooms | A user (employee) participates in many chat rooms |
+| **users** | 1:N | chat_rooms | A user (driver) participates in many chat rooms |
+| **users** | 1:N | chat_messages | A user sends many chat messages |
+| **bookings** | 1:1 | booking_approvals | A booking may have one approval record |
+| **bookings** | 1:1 | chat_rooms | A booking may have one chat room (BLOCK_SCHEDULE only) |
+| **chat_rooms** | 1:N | chat_messages | A chat room contains many messages |
 | **vehicles** | 1:N | km_quotas | A vehicle has monthly kilometer quotas |
 | **vehicles** | 1:N | bookings | A vehicle is assigned to many bookings |
 | **vehicles** | 1:N | gps_locations | A vehicle emits many GPS location records |
@@ -71,6 +80,8 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
         varchar phone
         user_role role
         user_segment user_segment
+        position_level position_level
+        uuid manager_id FK
         uuid department_id FK
         boolean is_active
         timestamp created_at
@@ -125,6 +136,8 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
         uuid department_id FK
         booking_type booking_type
         booking_status status
+        approval_type approval_type
+        boolean is_business_trip
         date scheduled_date
         time scheduled_time
         date end_date
@@ -140,6 +153,45 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
         cancellation_reason cancellation_reason
         timestamp created_at
         timestamp updated_at
+    }
+
+    booking_approvals {
+        uuid id PK
+        uuid booking_id FK
+        uuid approver_id FK
+        uuid requester_id FK
+        approval_type approval_type
+        approval_status status
+        text notes
+        int reminder_count
+        timestamp last_reminder_at
+        timestamp responded_at
+        timestamp expires_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    chat_rooms {
+        uuid id PK
+        uuid booking_id FK UK
+        uuid employee_id FK
+        uuid driver_id FK
+        chat_room_status status
+        timestamp last_message_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    chat_messages {
+        uuid id PK
+        uuid chat_room_id FK
+        uuid sender_id FK
+        text content
+        varchar message_type
+        jsonb metadata
+        message_status status
+        timestamp read_at
+        timestamp created_at
     }
 
     trip_stops {
@@ -309,6 +361,18 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
     bookings ||--o| external_dispatches : "redirected_to"
 
     pickup_points ||--o{ trip_stops : "location_for"
+
+    users ||--o{ users : "manages"
+    users ||--o{ booking_approvals : "approves"
+    users ||--o{ booking_approvals : "requests"
+    users ||--o{ chat_rooms : "employee_in"
+    users ||--o{ chat_rooms : "driver_in"
+    users ||--o{ chat_messages : "sends"
+
+    bookings ||--o| booking_approvals : "requires_approval"
+    bookings ||--o| chat_rooms : "has_chat"
+
+    chat_rooms ||--o{ chat_messages : "contains"
 `} />
 
 ### Diagram Legend
@@ -339,6 +403,13 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
 | `trip_stops` | Individual stops within bookings |
 | `external_dispatches` | Records for Grab/Taxi redirects |
 | `booking_sequences` | Thread-safe booking code generation |
+| `booking_approvals` | Approval workflow tracking |
+
+#### Communication
+| Table | Description |
+|-------|-------------|
+| `chat_rooms` | Chat rooms linking employees and drivers |
+| `chat_messages` | Individual messages in chat rooms |
 
 #### Tracking & GPS
 | Table | Description |
@@ -383,6 +454,8 @@ Stores all system users including employees, drivers, and administrators.
 | phone | VARCHAR | | Contact phone number |
 | role | ENUM | NOT NULL | User role (see below) |
 | user_segment | ENUM | | User segment type |
+| position_level | ENUM | DEFAULT 'STAFF' | Employee position level for approval workflow |
+| manager_id | UUID | FK → users | Direct line manager (for approval workflow) |
 | department_id | UUID | FK → departments | Associated department |
 | is_active | BOOLEAN | DEFAULT true | Account status |
 | created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
@@ -398,6 +471,16 @@ Stores all system users including employees, drivers, and administrators.
 **User Segment Enum Values:**
 - `DAILY` - SIC users with fixed routes
 - `SOMETIMES` - Business trippers with occasional bookings
+
+**Position Level Enum Values:**
+- `STAFF` - Regular staff member
+- `SENIOR` - Senior staff
+- `TEAM_LEAD` - Team lead
+- `MGR` - Manager (auto-approve threshold)
+- `SR_MGR` - Senior Manager
+- `DIRECTOR` - Director
+- `VP` - Vice President
+- `C_LEVEL` - C-Level (CEO, CFO, etc.)
 
 ---
 
@@ -507,6 +590,8 @@ Main booking/reservation records.
 | department_id | UUID | FK → departments | Department for cost allocation |
 | booking_type | ENUM | NOT NULL | Type of booking |
 | status | ENUM | NOT NULL | Current booking status |
+| approval_type | ENUM | | Type of approval required |
+| is_business_trip | BOOLEAN | DEFAULT true | Whether this is a business trip |
 | scheduled_date | DATE | NOT NULL | Scheduled trip date |
 | scheduled_time | TIME | NOT NULL | Scheduled trip time |
 | end_date | DATE | | End date for block schedules |
@@ -530,6 +615,7 @@ Main booking/reservation records.
 - `BLOCK_SCHEDULE` - Recurring/block booking
 
 **Status Enum Values:**
+- `PENDING_APPROVAL` - Awaiting manager approval (new)
 - `PENDING` - Awaiting confirmation
 - `CONFIRMED` - Booking confirmed
 - `ASSIGNED` - Vehicle and driver assigned
@@ -537,6 +623,11 @@ Main booking/reservation records.
 - `COMPLETED` - Trip completed
 - `CANCELLED` - Booking cancelled
 - `REDIRECTED_EXTERNAL` - Redirected to external provider
+
+**Approval Type Enum Values:**
+- `MANAGER_APPROVAL` - Requires manager approval
+- `CC_ONLY` - Just notify manager (no approval needed)
+- `AUTO_APPROVED` - Auto-approved (management level)
 
 **Cancellation Reason Enum Values:**
 - `USER_REQUEST` - User cancelled their own booking
@@ -605,6 +696,100 @@ Records when bookings are redirected to external providers (Grab/Taxi).
 - `TAXI_MAI_LINH` - Mai Linh Taxi
 - `TAXI_VINASUN` - Vinasun Taxi
 - `OTHER` - Other provider
+
+---
+
+### Booking Approvals
+
+Tracks approval requests and their status for the approval workflow.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, NOT NULL | Associated booking |
+| approver_id | UUID | FK → users, NOT NULL | Manager who should approve |
+| requester_id | UUID | FK → users, NOT NULL | Employee who requested |
+| approval_type | ENUM | NOT NULL | Type of approval |
+| status | ENUM | NOT NULL, DEFAULT 'PENDING' | Current approval status |
+| notes | TEXT | | Approval/rejection notes |
+| reminder_count | INT | DEFAULT 0 | Number of reminders sent |
+| last_reminder_at | TIMESTAMP | | Last reminder timestamp |
+| responded_at | TIMESTAMP | | When approver responded |
+| expires_at | TIMESTAMP | | Approval expiration time (24h) |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Approval Status Enum Values:**
+- `PENDING` - Awaiting approval
+- `APPROVED` - Approved by manager
+- `REJECTED` - Rejected by manager
+- `AUTO_APPROVED` - Auto-approved (SIC or management)
+- `EXPIRED` - Approval request expired
+
+**Indexes:**
+- `idx_booking_approvals_booking` on `(booking_id)`
+- `idx_booking_approvals_approver_status` on `(approver_id, status)`
+
+---
+
+## Communication (Chat System)
+
+### Chat Rooms
+
+Chat rooms for employee-driver communication on BLOCK_SCHEDULE bookings.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| booking_id | UUID | FK → bookings, UNIQUE, NOT NULL | Associated booking |
+| employee_id | UUID | FK → users, NOT NULL | Employee in chat |
+| driver_id | UUID | FK → users, NOT NULL | Driver in chat |
+| status | ENUM | NOT NULL, DEFAULT 'ACTIVE' | Room status |
+| last_message_at | TIMESTAMP | | Last message timestamp |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT now() | Last update timestamp |
+
+**Chat Room Status Enum Values:**
+- `ACTIVE` - Chat room is active
+- `ARCHIVED` - Chat room archived (booking completed)
+- `CLOSED` - Chat room closed (booking cancelled)
+
+---
+
+### Chat Messages
+
+Individual chat messages within a chat room.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PK | Primary key |
+| chat_room_id | UUID | FK → chat_rooms, NOT NULL | Parent chat room |
+| sender_id | UUID | FK → users, NOT NULL | Message sender |
+| content | TEXT | NOT NULL | Message content |
+| message_type | VARCHAR | DEFAULT 'text' | Message type |
+| metadata | JSONB | | Additional data (e.g., schedule changes) |
+| status | ENUM | NOT NULL, DEFAULT 'SENT' | Delivery status |
+| read_at | TIMESTAMP | | When message was read |
+| created_at | TIMESTAMP | DEFAULT now() | Creation timestamp |
+
+**Message Type Values:**
+- `text` - Regular text message
+- `schedule_change` - Schedule change notification
+- `system` - System-generated message
+
+**Message Status Enum Values:**
+- `SENT` - Message sent to server
+- `DELIVERED` - Message delivered to recipient
+- `READ` - Message read by recipient
+
+**Example Metadata for Schedule Change:**
+```json
+{
+  "newTime": "14:30",
+  "reason": "Meeting extended",
+  "originalTime": "13:00"
+}
+```
 
 ---
 
@@ -835,6 +1020,72 @@ Thread-safe booking code sequence tracking to prevent race conditions.
 
 **Usage:** Booking codes are generated as `MSM-YYYYMMDD-XXXX` where XXXX is the daily sequence.
 
+**Implementation:** Uses atomic `INSERT...ON CONFLICT` to prevent race conditions:
+
+```sql
+INSERT INTO booking_sequences (date_key, last_seq)
+VALUES ('2024-01-15', 1)
+ON CONFLICT (date_key)
+DO UPDATE SET last_seq = booking_sequences.last_seq + 1
+RETURNING last_seq;
+```
+
+---
+
+## Database Indexes
+
+Comprehensive indexes for query optimization across all major entities.
+
+### Booking Indexes
+
+| Index Name | Columns | Purpose |
+|------------|---------|---------|
+| `idx_bookings_status_scheduled` | `status`, `scheduledDate` | Filter bookings by status and date range |
+| `idx_bookings_requester` | `requesterId` | Find bookings by requester |
+| `idx_bookings_driver` | `assignedDriverId` | Find bookings assigned to driver |
+| `idx_bookings_vehicle` | `assignedVehicleId` | Find bookings using specific vehicle |
+| `idx_bookings_department` | `departmentId` | Department-level booking reports |
+
+### User Indexes
+
+| Index Name | Columns | Purpose |
+|------------|---------|---------|
+| `idx_users_role_active` | `role`, `isActive` | Filter active users by role |
+| `idx_users_department` | `departmentId` | Find users in department |
+| `idx_users_manager` | `managerId` | Find direct reports |
+
+### Vehicle Indexes
+
+| Index Name | Columns | Purpose |
+|------------|---------|---------|
+| `idx_vehicles_status_active` | `status`, `isActive` | Find available vehicles |
+| `idx_vehicles_driver` | `assignedDriverId` | Find vehicle by assigned driver |
+
+### Approval Indexes
+
+| Index Name | Columns | Purpose |
+|------------|---------|---------|
+| `idx_booking_approvals_approver_status` | `approverId`, `status` | Pending approvals for approver |
+| `idx_booking_approvals_booking` | `bookingId` | Find approval by booking |
+
+### Chat Indexes
+
+| Index Name | Columns | Purpose |
+|------------|---------|---------|
+| `idx_chat_rooms_employee` | `employeeId` | Find rooms by employee |
+| `idx_chat_rooms_driver` | `driverId` | Find rooms by driver |
+| `idx_chat_rooms_status` | `status` | Filter rooms by status |
+| `idx_chat_messages_room_created` | `chatRoomId`, `createdAt` | Message history ordered by time |
+| `idx_chat_messages_sender` | `senderId` | Find messages by sender |
+
+### Audit Indexes
+
+| Index Name | Columns | Purpose |
+|------------|---------|---------|
+| `idx_audit_table_record` | `table_name`, `record_id` | Find history for specific record |
+| `idx_audit_changed_at` | `changed_at DESC` | Recent changes |
+| `idx_audit_changed_by` | `changed_by` | Changes by user |
+
 ---
 
 ## Design Decisions
@@ -867,6 +1118,7 @@ Thread-safe booking code sequence tracking to prevent race conditions.
 ```sql
 user_role: ADMIN, PIC, GA, DRIVER, EMPLOYEE
 user_segment: DAILY, SOMETIMES
+position_level: STAFF, SENIOR, TEAM_LEAD, MGR, SR_MGR, DIRECTOR, VP, C_LEVEL
 ```
 
 ### Vehicles
@@ -883,10 +1135,12 @@ point_type: FIXED, FLEXIBLE
 ### Bookings
 ```sql
 booking_type: SINGLE_TRIP, MULTI_STOP, BLOCK_SCHEDULE
-booking_status: PENDING, CONFIRMED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED, REDIRECTED_EXTERNAL
+booking_status: PENDING_APPROVAL, PENDING, CONFIRMED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED, REDIRECTED_EXTERNAL
 stop_type: PICKUP, DROP, STOP
 cancellation_reason: USER_REQUEST, NO_VEHICLE_AVAILABLE, NO_DRIVER_AVAILABLE, QUOTA_EXCEEDED,
                      VEHICLE_BREAKDOWN, SCHEDULE_CONFLICT, WEATHER, EMERGENCY, DUPLICATE, OTHER
+approval_type: MANAGER_APPROVAL, CC_ONLY, AUTO_APPROVED
+approval_status: PENDING, APPROVED, REJECTED, AUTO_APPROVED, EXPIRED
 ```
 
 ### External Providers
@@ -904,8 +1158,16 @@ maintenance_type: SCHEDULED, REPAIR, INSPECTION, TIRE_SERVICE, OIL_CHANGE, CLEAN
 ### Notifications
 ```sql
 notification_channel: APP_PUSH, AUTO_CALL, SMS
-notification_type: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED
+notification_type: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED,
+                   APPROVAL_REQUIRED, APPROVAL_REMINDER, BOOKING_APPROVED, BOOKING_REJECTED,
+                   BOOKING_CC_NOTIFICATION, NEW_CHAT_MESSAGE, SCHEDULE_CHANGE_ALERT
 notification_status: PENDING, SENT, DELIVERED, FAILED
+```
+
+### Chat
+```sql
+chat_room_status: ACTIVE, ARCHIVED, CLOSED
+message_status: SENT, DELIVERED, READ
 ```
 
 ### Driver App

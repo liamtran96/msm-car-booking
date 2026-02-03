@@ -3,6 +3,7 @@ import {
   BookingType,
   BookingStatus,
   DriverResponseStatus,
+  ApprovalType,
 } from '../../common/enums';
 import {
   generateUuid,
@@ -21,6 +22,8 @@ export interface CreateBookingOptions {
   departmentId?: string;
   bookingType?: BookingType;
   status?: BookingStatus;
+  approvalType?: ApprovalType;
+  isBusinessTrip?: boolean;
   scheduledDate?: Date;
   scheduledTime?: string;
   endDate?: Date;
@@ -57,6 +60,8 @@ export function createMockBooking(options: CreateBookingOptions = {}): Booking {
     department: undefined as unknown as Department,
     bookingType: options.bookingType ?? BookingType.SINGLE_TRIP,
     status: options.status ?? BookingStatus.PENDING,
+    approvalType: options.approvalType ?? ApprovalType.AUTO_APPROVED,
+    isBusinessTrip: options.isBusinessTrip ?? true,
     scheduledDate: options.scheduledDate ?? todayDate,
     scheduledTime: options.scheduledTime ?? formatTime(9, 0),
     endDate: options.endDate ?? null!,

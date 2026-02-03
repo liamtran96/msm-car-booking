@@ -10,12 +10,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
   ) {
+    const secret = configService.get<string>('app.jwt.secret');
+    if (!secret) {
+      throw new Error('JWT secret is not configured');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get<string>('app.jwt.secret') ||
-        'fallback-secret-change-in-production',
+      secretOrKey: secret,
     });
   }
 

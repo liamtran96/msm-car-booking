@@ -267,7 +267,10 @@ describe('DriverShiftsController', () => {
     it('should update shift', async () => {
       const mockShift = createMockDriverShift();
       const updateDto: UpdateDriverShiftDto = { endTime: formatTime(18, 0) };
-      const updatedShift = { ...mockShift, endTime: updateDto.endTime };
+      const updatedShift = {
+        ...mockShift,
+        endTime: updateDto.endTime as string,
+      };
       const mockResponse = createMockDriverShiftResponseDto(updatedShift);
       updateSpy.mockResolvedValue(mockResponse);
 

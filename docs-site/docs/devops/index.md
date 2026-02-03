@@ -46,6 +46,12 @@ Follow this order to learn DevOps from basics to advanced:
 | [VPS Deployment Guide](./08-vps-deployment-guide) | Backend-only VPS deployment | Intermediate |
 | [Prometheus & Grafana](./09-prometheus-grafana) | Metrics, dashboards, alerting | Intermediate |
 
+### Configuration
+
+| Document | Description |
+|----------|-------------|
+| [Environment Variables](./environment-variables) | Complete reference for all environment variables |
+
 ### Quick Reference
 
 | Document | Description |

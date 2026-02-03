@@ -43,8 +43,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Utilization Balance: 15%
   - Capacity Fit: 20%
 - Booking code format: `MSM-YYYYMMDD-XXXX`
-- Status workflow: PENDING → CONFIRMED → ASSIGNED → IN_PROGRESS → COMPLETED
+- Status workflow: PENDING_APPROVAL → PENDING → CONFIRMED → ASSIGNED → IN_PROGRESS → COMPLETED
 - Cancellation with reason tracking and notification triggers
+- **Approval Workflow** based on user type and position level:
+  - SIC employees (DAILY segment + business trip): CC to line manager only, no approval required
+  - Other employees (SOMETIMES segment): Manager approval required before system processing
+  - Management level (MGR and above): Auto-approved, no approval required
+- Position levels: STAFF → SENIOR → TEAM_LEAD → MGR → SR_MGR → DIRECTOR → VP → C_LEVEL
+
+#### 3a. Fixed Route Communication (Chat System)
+- In-app chat between employee and driver for BLOCK_SCHEDULE bookings
+- Schedule change notifications (late return, early/late departure)
+- Real-time messaging via WebSocket
+- Push notifications for new messages
 
 #### 4. KM Quota Management
 - Monthly quotas per vehicle with configurable tolerance
@@ -91,7 +102,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Multi-channel: APP_PUSH, AUTO_CALL, SMS
 - Automated calls with Text-to-Speech (Vietnamese)
 - Schedule reminders (15 min before departure)
-- Notification types: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED
+- Notification types:
+  - Booking: BOOKING_CONFIRMED, VEHICLE_ARRIVING, TRIP_STARTED, TRIP_COMPLETED, BOOKING_CANCELLED
+  - Approval: APPROVAL_REQUIRED, APPROVAL_REMINDER, BOOKING_APPROVED, BOOKING_REJECTED, BOOKING_CC_NOTIFICATION
+  - Chat: NEW_CHAT_MESSAGE, SCHEDULE_CHANGE_ALERT
 
 #### 9. External Vehicle Rental
 - Automatic queue when internal vehicles unavailable
@@ -114,11 +128,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Comprehensive audit logging for critical changes
 
 #### 12. Security Features
+
+**Authentication:**
+- JWT authentication with Passport.js
+- JWT_SECRET validation (throws error if missing in production)
+- WebSocket connections require JWT token (no fallback)
+- SSO integration ready
+
+**Authorization:**
 - NestJS Guards for route-level authorization
 - Role-based access control (RBAC)
-- JWT authentication with SSO integration
+- Resource-level authorization (e.g., approval records viewable only by requester, approver, or admin)
+
+**HTTP Security:**
+- Helmet security headers (CSP, XSS protection, HSTS, frame options)
+- CORS configuration via `CORS_ORIGIN` environment variable
+
+**Rate Limiting (Defense in Depth):**
+- Application-level: 100 requests/minute per IP (`@nestjs/throttler`)
+- Nginx-level: 10 requests/second per IP
+
+**Database Security:**
 - Parameterized queries preventing SQL injection
+- Atomic operations for booking code generation (`INSERT...ON CONFLICT`)
+- Database transactions for critical operations
+
+**Network Security:**
 - HTTPS-only communication in production
+
+> See `docs-site/docs/backend/security.md` for implementation details
 
 ---
 
@@ -174,6 +212,209 @@ You are a senior full-stack developer with expertise in writing production-quali
 - Use test factories from `src/test/factories/` for consistent test data
 - Delegate to `tester` agent to run tests and analyze the summary report.
 - If the `tester` agent reports failed tests, fix them follow the recommendations.
+
+##### Testing Architecture
+
+The backend uses a three-tier testing strategy:
+
+**1. Unit Tests (`*.spec.ts`)**
+- Location: `src/modules/*/*.spec.ts`
+- Purpose: Test individual services and controllers in isolation
+- Database: Mocked repositories
+- Run: `pnpm test`
+
+**2. Integration Tests (`*.integration-spec.ts`)**
+- Location: `test/integration/*.integration-spec.ts`
+- Purpose: Test service-to-service interactions with real database
+- Database: Testcontainers PostgreSQL
+- Run: `pnpm test:integration`
+
+**3. E2E Tests (`*.e2e-spec.ts`)**
+- Location: `test/e2e/*.e2e-spec.ts`
+- Purpose: Test complete HTTP request/response cycles
+- Database: Testcontainers PostgreSQL
+- Run: `pnpm test:e2e`
+
+**Test Infrastructure:**
+```
+backend/
+├── test/
+│   ├── jest-e2e.json              # E2E test config
+│   ├── jest-integration.json      # Integration test config
+│   ├── setup/
+│   │   ├── test-database.ts       # Testcontainers setup
+│   │   ├── global-setup.ts        # Jest global setup
+│   │   ├── global-teardown.ts     # Jest global teardown
+│   │   ├── test-app.factory.ts    # NestJS test app factory
+│   │   └── jest-setup.ts          # Jest environment setup
+│   ├── e2e/                       # E2E test files
+│   └── integration/               # Integration test files
+└── src/test/
+    ├── factories/                 # Test data factories
+    ├── mocks/                     # Mock utilities
+    └── utils/
+        ├── test-helper.ts         # General test utilities
+        ├── e2e-test-helper.ts     # E2E-specific helpers
+        └── database-seeder.ts     # Database seeding utility
+```
+
+**E2E Test Authentication:**
+```typescript
+import { generateTestTokens, authHeader } from '../../src/test/utils/e2e-test-helper';
+
+const tokens = generateTestTokens(jwtService, seededData.users);
+
+// Use tokens in requests
+const response = await request(app.getHttpServer())
+  .get('/users')
+  .set(authHeader(tokens.adminToken))
+  .expect(200);
+```
+
+**Database Cleanup:**
+```typescript
+import { cleanDatabase } from '../setup/test-database';
+
+afterAll(async () => {
+  await cleanDatabase(dataSource);
+  await app.close();
+});
+```
+
+**Testcontainers Requirements:**
+- Docker must be running
+- Tests run with `--runInBand` to avoid port conflicts
+- Container reuse enabled for faster subsequent runs
+
+##### E2E Test Best Practices
+
+**1. Test Structure:**
+```typescript
+describe('Module (e2e)', () => {
+  let container: StartedPostgreSqlContainer;
+  let context: TestAppContext;
+  let app: INestApplication;
+  let dataSource: DataSource;
+  let seededData: SeededData;
+  let tokens: TestTokens;
+
+  beforeAll(async () => {
+    container = await startTestDatabase();
+    context = await createTestApp(container);
+    app = context.app;
+    dataSource = context.dataSource;
+    seededData = await seedTestData(dataSource);
+    tokens = generateTestTokens(context.jwtService, seededData.users);
+  });
+
+  afterAll(async () => {
+    await cleanDatabase(dataSource);
+    await app.close();
+  });
+
+  // Test cases...
+});
+```
+
+**2. Test Coverage Requirements:**
+- Test all HTTP methods (GET, POST, PATCH, DELETE)
+- Test authentication (401 for unauthenticated requests)
+- Test authorization (403 for unauthorized roles)
+- Test validation (400 for invalid input)
+- Test error cases (404 for non-existent resources)
+- Test business rules and edge cases
+
+**3. Role-Based Testing:**
+```typescript
+// Test tokens available from seeded data:
+// - tokens.adminToken (ADMIN role)
+// - tokens.picToken (PIC role)
+// - tokens.driverToken (DRIVER role)
+// - tokens.employeeToken (EMPLOYEE role)
+// - tokens.managerToken (Manager level)
+```
+
+##### Integration Test Best Practices
+
+**1. Test Structure:**
+```typescript
+describe('Feature Integration', () => {
+  let container: StartedPostgreSqlContainer;
+  let dataSource: DataSource;
+  let module: TestingModule;
+  let seededData: SeededData;
+  let service: ServiceUnderTest;
+
+  beforeAll(async () => {
+    container = await startTestDatabase();
+    const dsOptions = getTestDataSourceOptions(container);
+
+    module = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true, ... }),
+        TypeOrmModule.forRoot({ ...dsOptions, autoLoadEntities: true }),
+        JwtModule.register({ ... }),
+        // Required modules
+      ],
+    }).compile();
+
+    dataSource = module.get(DataSource);
+    service = module.get(ServiceUnderTest);
+    seededData = await seedTestData(dataSource);
+  });
+
+  afterAll(async () => {
+    await cleanDatabase(dataSource);
+    await module.close();
+  });
+});
+```
+
+**2. Test Scenarios:**
+- Complete workflow scenarios (create → process → complete)
+- Cross-service interactions
+- Database constraint validations
+- Status transitions and business rules
+- Concurrent access and race conditions
+
+##### Seeded Test Data
+
+The `seedTestData()` function provides consistent test data:
+
+```typescript
+seededData = {
+  departments: Department[],  // 2 test departments
+  users: {
+    admin: User,       // ADMIN role
+    pic: User,         // PIC role
+    ga: User,          // GA role
+    driver: User,      // DRIVER role
+    employee: User,    // EMPLOYEE role (SOMETIMES segment)
+    manager: User,     // MGR position level
+    sicEmployee: User, // DAILY segment (SIC employee)
+  },
+  vehicles: Vehicle[], // 3 test vehicles
+  bookings: Booking[], // Sample bookings
+};
+```
+
+##### Common Test Utilities
+
+```typescript
+// Generate unique values to avoid conflicts
+import { uniqueEmail, uniqueLicensePlate, uniqueBookingCode } from 'e2e-test-helper';
+
+// Generate UUIDs
+import { generateUuid } from 'test-helper';
+
+// Format dates and times
+import { today, tomorrow, formatDate, formatTime } from 'test-helper';
+
+// Type annotations for response bodies
+response.body.forEach((item: Record<string, unknown>) => {
+  expect(item.status).toBe(expectedStatus);
+});
+```
 
 #### 3. Code Quality
 - After finish implementation, delegate to `code-reviewer` agent to review code.
@@ -237,6 +478,7 @@ During the implementation process, you will delegate tasks to the following suba
 | `.claude/skills/` | Skill definitions |
 
 ### General
+- **CRITICAL: Follow existing business logic strictly.** Never invent, assume, or create features, behaviors, or test expectations that don't exist in the codebase. Always verify against actual service implementations before writing tests or making assumptions about system behavior.
 - Use `context7` mcp tools for exploring latest docs of plugins/packages
 - Use `senera` mcp tools for semantic retrieval and editing capabilities
 - Use `psql` bash command to query database for debugging: `docker exec -i msm_postgres psql -U postgres -d msm_car_booking`
@@ -264,8 +506,14 @@ pnpm db:reset                   # Reset and reseed database
 
 # Testing
 pnpm test               # Run unit tests
-pnpm test:e2e           # Run e2e tests
-pnpm test:cov           # Run tests with coverage
+pnpm test:watch         # Run unit tests in watch mode
+pnpm test:cov           # Run unit tests with coverage
+pnpm test:e2e           # Run E2E tests (testcontainers)
+pnpm test:e2e:watch     # Run E2E tests in watch mode
+pnpm test:e2e:cov       # Run E2E tests with coverage
+pnpm test:integration   # Run integration tests
+pnpm test:integration:watch # Run integration tests in watch mode
+pnpm test:all           # Run all tests (unit + integration + e2e)
 
 # Linting
 pnpm lint               # Run ESLint

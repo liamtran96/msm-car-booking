@@ -1,5 +1,5 @@
 import { User } from '../../modules/users/entities/user.entity';
-import { UserRole, UserSegment } from '../../common/enums';
+import { UserRole, UserSegment, PositionLevel } from '../../common/enums';
 import { generateUuid } from '../utils/test-helper';
 import { UserResponseDto } from '../../modules/users/dto/user-response.dto';
 import { Department } from '../../modules/departments/entities/department.entity';
@@ -12,6 +12,8 @@ export interface CreateUserOptions {
   phone?: string;
   role?: UserRole;
   userSegment?: UserSegment;
+  positionLevel?: PositionLevel;
+  managerId?: string;
   departmentId?: string;
   isActive?: boolean;
   createdAt?: Date;
@@ -31,6 +33,9 @@ export function createMockUser(options: CreateUserOptions = {}): User {
     phone: options.phone ?? '+84123456789',
     role: options.role ?? UserRole.EMPLOYEE,
     userSegment: options.userSegment ?? UserSegment.SOMETIMES,
+    positionLevel: options.positionLevel ?? PositionLevel.STAFF,
+    managerId: options.managerId ?? generateUuid(),
+    manager: undefined as unknown as User,
     departmentId: options.departmentId ?? generateUuid(),
     department: undefined as unknown as Department,
     isActive: options.isActive ?? true,

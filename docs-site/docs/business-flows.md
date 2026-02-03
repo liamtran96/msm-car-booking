@@ -12,10 +12,21 @@ sidebar_position: 1
 
 - **Automated Dispatching**: System automatically arranges and dispatches vehicles based on schedule, reducing manual operations for PIC (Person In Charge).
 - **Advance Booking**: Allows users or admin to create vehicle booking requests for future dates.
+- **Approval Workflow**: Different approval flows based on user type and position level:
+  - **SIC Employees (DAILY segment)**: Business trips only require CC notification to line manager - request goes directly to system without approval needed.
+  - **Other Employees (SOMETIMES segment)**: Must go through department manager approval first. Only after manager approves ("Done") does the request proceed to the central system. System sets reminder/warning notifications for approvers if pending too long.
+  - **Management Level (MGR and above)**: Just fill in trip information - system automatically accepts without requiring approval.
 - **Multi-stop/Block Schedule**:
   - Supports employees traveling to multiple consecutive locations.
   - "Block schedule" feature: Reserve a vehicle for an extended period, reducing the need to create multiple separate trips for the same journey.
 - **Pickup Points Management**: System allows defining and routing fixed or flexible pickup/drop-off points.
+
+### 1.2. Fixed Route Communication
+
+- **Schedule Change Notifications**: For fixed route shuttles (BLOCK_SCHEDULE bookings), when schedule changes occur:
+  - When user will return late: System notifies driver of new return time.
+  - When departure time changes (early or late): System notifies driver of schedule change.
+- **In-App Chat**: System creates a chat window between employee and driver for direct communication about schedule changes.
 
 ### 1.2. Fleet Management Module
 
@@ -39,7 +50,51 @@ sidebar_position: 1
 - **Daily Group**: For SIC (contract employees/fixed routes).
 - **Sometimes Group**: For Business Trippers (employees on business trips), External Guests.
 
-### 2.2. Over-KM Handling Logic
+### 2.2. Approval Workflow Rules
+
+**User Position Levels:** STAFF → SENIOR → TEAM_LEAD → MGR → SR_MGR → DIRECTOR → VP → C_LEVEL
+
+| User Type | Condition | Approval Flow |
+|-----------|-----------|---------------|
+| SIC Employees | `user_segment = DAILY` AND business trip | **No approval required** - CC (copy) notification to line manager only |
+| Other Employees | `user_segment = SOMETIMES` OR non-business trip | **Manager approval required** first → then to system |
+| Management Level | `position_level >= MGR` | **No approval required** - Auto-accept |
+
+**Approval Expiration:** Pending approvals expire after 24 hours with automated reminders sent to approvers.
+
+### 2.3. Approval Notifications
+
+Notifications are automatically sent to line managers based on approval type:
+
+| Approval Type | Notification | Message | Action Required |
+|---------------|--------------|---------|-----------------|
+| `CC_ONLY` (SIC + business trip) | `BOOKING_CC_NOTIFICATION` | "[Employee] has created a business trip booking. No action required." | No |
+| `MANAGER_APPROVAL` | `APPROVAL_REQUIRED` | "[Employee] has requested your approval for booking. Please review and respond." | Yes |
+| `AUTO_APPROVED` (MGR+) | None | - | No |
+
+**Notification Flow for SIC Business Trip:**
+```
+Employee creates booking → System auto-approves → CC notification sent to manager
+                                              → Booking ready for dispatch
+```
+
+### 2.4. Approval Authorization Rules
+
+Access to approval records is restricted based on user role and relationship:
+
+| User | Can View | Can Respond |
+|------|----------|-------------|
+| **Requester** | Own approval requests | No |
+| **Approver** | Approvals assigned to them | Yes (approve/reject) |
+| **Admin** | All approvals | No (unless also approver) |
+| **Other Users** | None | No |
+
+**API Endpoint Authorization:**
+- `GET /approvals/:id` - Returns approval only if user is requester, approver, or admin
+- `GET /approvals/booking/:bookingId` - Same authorization rules as above
+- `POST /approvals/:id/respond` - Only the assigned approver can respond
+
+### 2.5. Over-KM Handling Logic
 
 **Parameter Configuration**: System allows Admin to configure "Tolerance Limit" (e.g., 50km, 100km...).
 

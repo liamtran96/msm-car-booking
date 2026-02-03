@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -14,6 +15,8 @@ import { GpsModule } from './modules/gps/gps.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { SystemModule } from './modules/system/system.module';
+import { ApprovalsModule } from './modules/approvals/approvals.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 // Configuration
 import databaseConfig from './config/database.config';
@@ -27,6 +30,14 @@ import appConfig from './config/app.config';
       load: [databaseConfig, appConfig],
       envFilePath: ['.env.local', '.env'],
     }),
+
+    // Rate limiting - 100 requests per minute per IP
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute in milliseconds
+        limit: 100, // 100 requests per minute
+      },
+    ]),
 
     // Database
     TypeOrmModule.forRootAsync({
@@ -55,6 +66,8 @@ import appConfig from './config/app.config';
     NotificationsModule,
     LocationsModule,
     SystemModule,
+    ApprovalsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

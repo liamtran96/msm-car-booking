@@ -48,6 +48,10 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           showLastUpdateTime: false,
+          exclude: [
+            '**/node_modules/**',
+            '**/pdf-tools/**',
+          ],
         },
         blog: {
           showReadingTime: true,

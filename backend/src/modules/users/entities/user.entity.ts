@@ -6,11 +6,15 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
-import { UserRole, UserSegment } from '../../../common/enums';
+import { UserRole, UserSegment, PositionLevel } from '../../../common/enums';
 import { Department } from '../../departments/entities/department.entity';
 
 @Entity('users')
+@Index('idx_users_role_active', ['role', 'isActive'])
+@Index('idx_users_department', ['departmentId'])
+@Index('idx_users_manager', ['managerId'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -37,6 +41,21 @@ export class User {
     nullable: true,
   })
   userSegment: UserSegment;
+
+  @Column({
+    name: 'position_level',
+    type: 'enum',
+    enum: PositionLevel,
+    default: PositionLevel.STAFF,
+  })
+  positionLevel: PositionLevel;
+
+  @Column({ name: 'manager_id', nullable: true })
+  managerId: string;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'manager_id' })
+  manager: User;
 
   @Column({ name: 'department_id', nullable: true })
   departmentId: string;

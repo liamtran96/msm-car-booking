@@ -6,11 +6,14 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { VehicleType, VehicleStatus } from '../../../common/enums';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('vehicles')
+@Index('idx_vehicles_status_active', ['status', 'isActive'])
+@Index('idx_vehicles_driver', ['assignedDriverId'])
 export class Vehicle {
   @PrimaryGeneratedColumn('uuid')
   id: string;

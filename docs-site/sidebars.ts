@@ -19,6 +19,16 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Architecture',
+      link: {
+        type: 'doc',
+        id: 'architecture/index',
+      },
+      collapsed: false,
+      items: [],
+    },
+    {
+      type: 'category',
       label: 'DevOps',
       link: {
         type: 'doc',
@@ -26,6 +36,7 @@ const sidebars: SidebarsConfig = {
       },
       collapsed: false,
       items: [
+        'devops/environment-variables',
         'devops/01-docker',
         'devops/02-docker-compose',
         'devops/03-nginx',
@@ -48,6 +59,7 @@ const sidebars: SidebarsConfig = {
       },
       collapsed: true,
       items: [
+        'backend/security',
         'backend/database-setup',
         'backend/vehicle-matching-algorithm',
       ],

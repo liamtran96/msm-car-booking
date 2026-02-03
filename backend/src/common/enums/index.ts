@@ -12,6 +12,27 @@ export enum UserSegment {
   SOMETIMES = 'SOMETIMES',
 }
 
+// Position level for approval workflow
+export enum PositionLevel {
+  STAFF = 'STAFF',
+  SENIOR = 'SENIOR',
+  TEAM_LEAD = 'TEAM_LEAD',
+  MGR = 'MGR',
+  SR_MGR = 'SR_MGR',
+  DIRECTOR = 'DIRECTOR',
+  VP = 'VP',
+  C_LEVEL = 'C_LEVEL',
+}
+
+// Define management level threshold (MGR and above auto-approve)
+export const MANAGEMENT_LEVELS: PositionLevel[] = [
+  PositionLevel.MGR,
+  PositionLevel.SR_MGR,
+  PositionLevel.DIRECTOR,
+  PositionLevel.VP,
+  PositionLevel.C_LEVEL,
+];
+
 // Vehicle enums
 export enum VehicleType {
   SEDAN = 'SEDAN',
@@ -41,6 +62,7 @@ export enum BookingType {
 }
 
 export enum BookingStatus {
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
   ASSIGNED = 'ASSIGNED',
@@ -48,6 +70,21 @@ export enum BookingStatus {
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   REDIRECTED_EXTERNAL = 'REDIRECTED_EXTERNAL',
+}
+
+// Approval workflow enums
+export enum ApprovalType {
+  MANAGER_APPROVAL = 'MANAGER_APPROVAL',
+  CC_ONLY = 'CC_ONLY',
+  AUTO_APPROVED = 'AUTO_APPROVED',
+}
+
+export enum ApprovalStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  AUTO_APPROVED = 'AUTO_APPROVED',
+  EXPIRED = 'EXPIRED',
 }
 
 export enum StopType {
@@ -119,6 +156,15 @@ export enum NotificationType {
   TRIP_STARTED = 'TRIP_STARTED',
   TRIP_COMPLETED = 'TRIP_COMPLETED',
   BOOKING_CANCELLED = 'BOOKING_CANCELLED',
+  // Approval workflow notifications
+  APPROVAL_REQUIRED = 'APPROVAL_REQUIRED',
+  APPROVAL_REMINDER = 'APPROVAL_REMINDER',
+  BOOKING_APPROVED = 'BOOKING_APPROVED',
+  BOOKING_REJECTED = 'BOOKING_REJECTED',
+  BOOKING_CC_NOTIFICATION = 'BOOKING_CC_NOTIFICATION',
+  // Chat notifications
+  NEW_CHAT_MESSAGE = 'NEW_CHAT_MESSAGE',
+  SCHEDULE_CHANGE_ALERT = 'SCHEDULE_CHANGE_ALERT',
 }
 
 export enum NotificationStatus {
@@ -158,4 +204,17 @@ export enum TripEventType {
   ODOMETER_RECORDED = 'ODOMETER_RECORDED',
   EXPENSE_ADDED = 'EXPENSE_ADDED',
   AUTO_CALL_TRIGGERED = 'AUTO_CALL_TRIGGERED',
+}
+
+// Chat enums
+export enum ChatRoomStatus {
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
+  CLOSED = 'CLOSED',
+}
+
+export enum MessageStatus {
+  SENT = 'SENT',
+  DELIVERED = 'DELIVERED',
+  READ = 'READ',
 }
