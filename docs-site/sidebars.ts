@@ -93,7 +93,7 @@ const sidebars: SidebarsConfig = {
         id: 'frontend/index',
       },
       collapsed: true,
-      items: ['frontend/design-system'],
+      items: ['frontend/architecture', 'frontend/design-system'],
     },
   ],
 };

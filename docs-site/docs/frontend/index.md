@@ -17,7 +17,7 @@ React-based web application for the MSM Car Booking system with httpOnly cookie 
 - **State Management:** Zustand 5 (auth store)
 - **Data Fetching:** Axios + TanStack Query v5
 - **Forms:** React Hook Form 7 + Zod v4
-- **Routing:** React Router v7
+- **Routing:** React Router v6
 - **Notifications:** Sonner (toast)
 - **Icons:** Lucide React
 - **Testing:** Playwright (E2E)
@@ -30,6 +30,7 @@ React-based web application for the MSM Car Booking system with httpOnly cookie 
 
 ### Architecture
 
+- **[Frontend Architecture](/docs/frontend/architecture)** - Application layers, data flow, state management, component design
 - **[Frontend Structure](#frontend-structure)** - Feature-based folder organization
 - **[Authentication Flow](#authentication-flow)** - Cookie-based JWT authentication with Zustand
 - **[Tech Stack Details](#tech-stack-details)** - Complete list of dependencies
@@ -251,7 +252,7 @@ Routes are protected using `ProtectedRoute` + `RoleGuard` components:
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react-router-dom` | 6.30.3 | Client-side routing |
+| `react-router-dom` | 6.30.3 | Client-side routing (v6) |
 | `zustand` | 5.0.10 | Lightweight state management (auth store) |
 
 ### Data Fetching
@@ -273,7 +274,7 @@ Routes are protected using `ProtectedRoute` + `RoleGuard` components:
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@radix-ui/*` | 1.4.3 | Unstyled, accessible UI primitives |
+| `radix-ui` | 1.4.3 | Unstyled, accessible UI primitives |
 | `tailwindcss` | 4.1.18 | Utility-first CSS framework |
 | `tailwind-merge` | 3.4.0 | Merge Tailwind classes without conflicts |
 | `clsx` | 2.1.1 | Conditional className utility |
@@ -285,7 +286,7 @@ Routes are protected using `ProtectedRoute` + `RoleGuard` components:
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@vitejs/plugin-react-swc` | 3.7.2 | Fast React refresh with SWC |
+| `@vitejs/plugin-react` | 5.1.1 | Fast React refresh |
 | `eslint` | 9.39.1 | Code linting |
 | `@playwright/test` | 1.58.1 | E2E testing |
 
@@ -371,6 +372,7 @@ Follow the glassmorphism design system:
 
 ## Related Documentation
 
+- [Frontend Architecture](/docs/frontend/architecture)
 - [Design System](/docs/frontend/design-system)
 - [Implementation Status](../implementation-status.md)
 - [Backend API](/docs/backend/)
