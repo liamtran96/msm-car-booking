@@ -173,7 +173,7 @@ This document describes the PostgreSQL data models for the MSM Car Booking Syste
 
     chat_rooms {
         uuid id PK
-        uuid booking_id FK UK
+        uuid booking_id FK "unique"
         uuid employee_id FK
         uuid driver_id FK
         chat_room_status status
