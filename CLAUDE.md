@@ -15,8 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Enable role-based access for Admin, PIC, GA, Drivers, and Employees
 
 ### Technology Stack
-- **Frontend:** React 19 + TypeScript, Vite, Tailwind CSS, Shadcn UI
-- **Backend:** NestJS 10 + TypeScript, TypeORM, Passport.js (JWT/SSO)
+- **Frontend:** React 19 + TypeScript, Vite 6, Tailwind CSS 4, Shadcn UI (new-york), React Router 7, Zustand, TanStack Query v5, React Hook Form, Zod v4, Axios, Sonner
+- **Backend:** NestJS 10 + TypeScript, TypeORM, Passport.js (JWT/SSO), cookie-parser
 - **Database:** PostgreSQL 16
 - **Mobile:** React Native (Android/iOS) for Driver and Employee apps
 - **Infrastructure:** Docker, Nginx
@@ -130,7 +130,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 #### 12. Security Features
 
 **Authentication:**
-- JWT authentication with Passport.js
+- JWT authentication with Passport.js using httpOnly cookies
+- Dual token extraction: httpOnly cookie (web frontend) or Authorization header (mobile/API testing)
 - JWT_SECRET validation (throws error if missing in production)
 - WebSocket connections require JWT token (no fallback)
 - SSO integration ready
@@ -142,7 +143,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **HTTP Security:**
 - Helmet security headers (CSP, XSS protection, HSTS, frame options)
-- CORS configuration via `CORS_ORIGIN` environment variable
+- CORS configuration via `CORS_ORIGIN` environment variable with `credentials: true` for cookie support
+- HttpOnly cookie configuration prevents XSS token theft
+- SameSite cookie attribute for CSRF protection
 
 **Rate Limiting (Defense in Depth):**
 - Application-level: 100 requests/minute per IP (`@nestjs/throttler`)

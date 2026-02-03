@@ -1,7 +1,119 @@
 @import "tailwindcss";
 
-:root {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-secondary: #6b7280;
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0.006 270);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.205 0.006 270);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.65 0.18 250);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.269 0.006 270);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.269 0.006 270);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.269 0.006 270);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.55 0.2 25);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.35 0.006 270);
+  --color-input: oklch(0.35 0.006 270);
+  --color-ring: oklch(0.65 0.18 250);
+  --color-chart-1: oklch(0.65 0.18 250);
+  --color-chart-2: oklch(0.7 0.15 160);
+  --color-chart-3: oklch(0.72 0.12 50);
+  --color-chart-4: oklch(0.68 0.16 300);
+  --color-chart-5: oklch(0.75 0.14 80);
+  --color-sidebar: oklch(0.178 0.006 270);
+  --color-sidebar-foreground: oklch(0.985 0 0);
+  --color-sidebar-primary: oklch(0.65 0.18 250);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.269 0.006 270);
+  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-border: oklch(0.35 0.006 270);
+  --color-sidebar-ring: oklch(0.65 0.18 250);
+
+  --radius: 0.625rem;
+
+  /* Glassmorphism tokens */
+  --glass-opacity: 0.08;
+  --glass-blur: 16px;
+  --glass-border-opacity: 0.12;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@utility glass {
+  background: rgba(255, 255, 255, var(--glass-opacity));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(255, 255, 255, var(--glass-border-opacity));
+  box-shadow: var(--glass-shadow);
+}
+
+@utility glass-card {
+  background: rgba(255, 255, 255, var(--glass-opacity));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(255, 255, 255, var(--glass-border-opacity));
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+@utility glass-card-info {
+  background: rgba(59, 130, 246, 0.1);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+@utility glass-card-success {
+  background: rgba(34, 197, 94, 0.1);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+@utility glass-card-warning {
+  background: rgba(234, 179, 8, 0.1);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+@utility glass-card-danger {
+  background: rgba(239, 68, 68, 0.1);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+@utility glass-card-purple {
+  background: rgba(168, 85, 247, 0.1);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
 }

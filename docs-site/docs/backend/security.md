@@ -104,6 +104,48 @@ location /api/ {
 
 ## 3. JWT Authentication
 
+### HttpOnly Cookie-Based Authentication
+
+The backend implements a secure cookie-based JWT authentication flow:
+
+**Login Flow:**
+1. User submits credentials via `POST /auth/login`
+2. Backend validates credentials
+3. JWT token is set as httpOnly cookie (not in response body)
+4. Response returns only user data (no token)
+
+**Session Validation:**
+- Frontend checks authentication via `GET /auth/me`
+- JWT automatically included via httpOnly cookie
+- No manual token management required in frontend
+
+**Logout:**
+- `POST /auth/logout` clears the httpOnly cookie
+
+### Token Extraction Strategy
+
+The JWT strategy supports **dual extraction modes** for flexibility:
+
+```typescript
+// src/modules/auth/strategies/jwt.strategy.ts
+const cookieOrBearerExtractor = (req: Request): string | null => {
+  // Priority 1: Extract from httpOnly cookie (frontend web app)
+  if (req?.cookies?.accessToken) {
+    return req.cookies.accessToken;
+  }
+  // Priority 2: Fallback to Authorization header (mobile apps/Swagger)
+  return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+};
+```
+
+**Supported Auth Methods:**
+
+| Client Type | Auth Method | Use Case |
+|-------------|-------------|----------|
+| **Web Frontend** | httpOnly cookie | Primary authentication for React web app |
+| **Mobile Apps** | `Authorization: Bearer <token>` | React Native apps (Android/iOS) |
+| **API Testing** | `Authorization: Bearer <token>` | Swagger UI, Postman, curl |
+
 ### Configuration
 
 JWT authentication is enforced with production-safe defaults:
@@ -147,6 +189,27 @@ const getJwtSecret = (): string => {
 
 - **Access Token:** 7 days
 - **Refresh Token:** Not implemented (stateless JWT)
+
+### Cookie Configuration
+
+```typescript
+// src/modules/auth/auth.controller.ts
+res.cookie('accessToken', result.accessToken, {
+  httpOnly: true,                                    // Prevents XSS attacks
+  secure: process.env.NODE_ENV === 'production',    // HTTPS only in production
+  sameSite: 'strict',                               // CSRF protection
+  maxAge: 24 * 60 * 60 * 1000,                     // 24 hours
+  path: '/',
+});
+```
+
+**Security Benefits:**
+
+| Feature | Protection Against |
+|---------|-------------------|
+| `httpOnly: true` | XSS attacks (JavaScript cannot access token) |
+| `secure: true` | Man-in-the-middle attacks (HTTPS only) |
+| `sameSite: 'strict'` | CSRF attacks (cookie only sent to same site) |
 
 ---
 
@@ -215,7 +278,7 @@ Cross-Origin Resource Sharing is configured via environment variables:
 // src/main.ts
 app.enableCors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true,
+  credentials: true,  // Required for httpOnly cookies
 });
 
 // src/modules/chat/chat.gateway.ts
@@ -236,7 +299,7 @@ app.enableCors({
 ### Security Notes
 
 - **Never use wildcard (`*`)** in production
-- Credentials mode requires explicit origin
+- `credentials: true` required for httpOnly cookies
 - WebSocket gateway uses same CORS configuration
 
 ---
@@ -379,6 +442,7 @@ export class CreateMessageDto {
 - [ ] Never commit `.env` files
 - [ ] Use different secrets for each environment
 - [ ] Test authentication flows regularly
+- [ ] Test cookie-based auth works across CORS
 
 ---
 

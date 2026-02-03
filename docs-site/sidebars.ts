@@ -67,6 +67,10 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Frontend',
+      link: {
+        type: 'doc',
+        id: 'frontend/index',
+      },
       collapsed: true,
       items: ['frontend/design-system'],
     },
