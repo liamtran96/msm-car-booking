@@ -28,13 +28,14 @@ MSM Car Booking is an **enterprise vehicle management system** designed for corp
 | Layer | Technology | Version |
 |-------|------------|---------|
 | **Frontend** | React + TypeScript | 19.x |
-| **Build Tool** | Vite | 6.x |
-| **UI Framework** | Tailwind CSS + Shadcn UI | 4.x |
-| **Backend** | NestJS + TypeScript | 11.x |
+| **Build Tool** | Vite | 7.x |
+| **UI Framework** | Tailwind CSS 4 + Shadcn UI | 4.x |
+| **Backend** | NestJS + TypeScript | 10.x |
 | **ORM** | TypeORM | 0.3.x |
-| **Database** | PostgreSQL | 18.x |
-| **Authentication** | Passport.js + JWT | - |
+| **Database** | PostgreSQL | 16.x |
+| **Authentication** | Passport.js + JWT (httpOnly cookies) | - |
 | **Real-time** | Socket.io | 4.x |
+| **Testing** | Jest + Testcontainers + Playwright | - |
 | **Containerization** | Docker + Docker Compose | - |
 | **Reverse Proxy** | Nginx | Alpine |
 | **Package Manager** | pnpm | 9.x |
@@ -175,19 +176,23 @@ The backend follows **NestJS module organization** with clear separation of conc
 
 ### Module Details
 
-| Module | Responsibility | Key Components |
-|--------|---------------|----------------|
-| **Auth** | Authentication & Authorization | JWT Strategy, Login, Guards |
-| **Users** | User Management & Driver Shifts | CRUD, Shifts, Manager Hierarchy |
-| **Bookings** | Booking Lifecycle & Dispatch | Create, Assign, Status Workflow |
-| **Vehicles** | Fleet & KM Quota Management | Vehicles, Quotas, Maintenance |
-| **Approvals** | Approval Workflow | Manager Approval, Auto-Approve |
-| **Chat** | Real-time Messaging | WebSocket Gateway, Rooms |
-| **GPS** | Location Tracking | Position Recording, History |
-| **Notifications** | Multi-channel Alerts | Push, SMS, Auto-Call |
-| **Departments** | Organization Structure | Cost Centers |
-| **Locations** | Pickup Points | Fixed & Flexible Locations |
-| **System** | Configuration & Audit | Config, Audit Logs |
+| Module | Responsibility | Key Components | Implementation Status |
+|--------|---------------|----------------|----------------------|
+| **Auth** | Authentication & Authorization | JWT Strategy, Login, Guards | **Done** (3 endpoints) |
+| **Users** | User Management & Driver Shifts | CRUD, Shifts, Manager Hierarchy | **Done** (11 + 13 endpoints) |
+| **Bookings** | Booking Lifecycle & Dispatch | Create, Assign, Status Workflow | **Partial** (3 GET endpoints, service logic exists but no POST/PATCH) |
+| **Vehicles** | Fleet & KM Quota Management | Vehicles, Quotas, Maintenance | **Partial** (3 GET endpoints, no CRUD) |
+| **Approvals** | Approval Workflow | Manager Approval, Auto-Approve | **Done** (7 endpoints) |
+| **Chat** | Real-time Messaging | WebSocket Gateway, Rooms | **Done** (8 REST + WebSocket) |
+| **GPS** | Location Tracking | Position Recording, History | **Partial** (2 GET endpoints, no data ingestion) |
+| **Notifications** | Multi-channel Alerts | Push, SMS, Auto-Call | **Partial** (2 endpoints, no sending mechanism) |
+| **Departments** | Organization Structure | Cost Centers | **Done** (2 endpoints) |
+| **Locations** | Pickup Points | Fixed & Flexible Locations | **Entity only** (no controller) |
+| **System** | Configuration & Audit | Config, Audit Logs | **Entity only** (no controller) |
+| **Reports** | Reporting & Analytics | Cost, KM, Trip History | **Not started** (no module) |
+| **Trips** | Trip Execution | Events, Expenses, Odometer | **Entity only** (entities in bookings module, no endpoints) |
+
+> See [Implementation Status](../implementation-status.md) for detailed gap analysis and [Backend Documentation](/docs/backend/) for full endpoint reference.
 
 ---
 
@@ -198,17 +203,24 @@ Each feature module follows a consistent structure:
 ```
 modules/
 └── bookings/
-    ├── bookings.module.ts      # Module definition & imports
-    ├── bookings.controller.ts  # REST API endpoints
-    ├── bookings.service.ts     # Business logic
-    ├── bookings.service.spec.ts# Unit tests
+    ├── bookings.module.ts       # Module definition & imports
+    ├── bookings.controller.ts   # REST API endpoints
+    ├── bookings.service.ts      # Business logic
+    ├── bookings.service.spec.ts # Unit tests
+    ├── bookings.controller.spec.ts # Controller unit tests
     ├── dto/
     │   ├── create-booking.dto.ts
-    │   ├── update-booking.dto.ts
-    │   └── booking-filter.dto.ts
+    │   └── update-booking.dto.ts
     └── entities/
-        └── booking.entity.ts   # TypeORM entity
+        ├── booking.entity.ts    # TypeORM entity
+        ├── trip-stop.entity.ts
+        ├── trip-event.entity.ts
+        ├── trip-expense.entity.ts
+        ├── trip-report.entity.ts
+        └── external-dispatch.entity.ts
 ```
+
+**Note:** Some modules (system, locations) currently only have entities without controllers or services. See [Implementation Status](../implementation-status.md) for details.
 
 ---
 
@@ -667,8 +679,10 @@ limit_conn conn 20;
 
 ## Related Documentation
 
+- [Implementation Status](../implementation-status.md) - Feature gap analysis and implementation tracking
 - [Database Models](/docs/database-models) - Complete schema documentation
 - [Business Flows](/docs/business-flows) - Business process documentation
 - [System Workflows](/docs/system-workflows) - Visual workflow diagrams
+- [Backend API](/docs/backend/) - Endpoint inventory and module reference
 - [DevOps Guide](/docs/devops) - Deployment and operations
 - [Vehicle Matching Algorithm](/docs/backend/vehicle-matching-algorithm) - Dispatch algorithm details

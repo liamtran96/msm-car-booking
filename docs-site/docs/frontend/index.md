@@ -1,5 +1,4 @@
 ---
-id: frontend-overview
 title: Frontend Overview
 sidebar_position: 1
 ---
@@ -8,80 +7,128 @@ sidebar_position: 1
 
 React-based web application for the MSM Car Booking system with httpOnly cookie authentication.
 
+**Last Updated:** 2026-02-03
+
 ## Architecture
 
-- **Framework:** React 19 with TypeScript
-- **Build Tool:** Vite 6
+- **Framework:** React 19 with TypeScript 5.9
+- **Build Tool:** Vite 7
 - **Styling:** Tailwind CSS 4 + shadcn/ui (new-york style)
-- **State Management:** Zustand (auth store)
+- **State Management:** Zustand 5 (auth store)
 - **Data Fetching:** Axios + TanStack Query v5
-- **Forms:** React Hook Form + Zod v4
+- **Forms:** React Hook Form 7 + Zod v4
 - **Routing:** React Router v7
 - **Notifications:** Sonner (toast)
 - **Icons:** Lucide React
+- **Testing:** Playwright (E2E)
 
 ## Documentation Index
 
 ### Design System
 
-- **[Design System](./design-system.md)** - Glassmorphism theme, utility classes, and UI components
+- **[Design System](/docs/frontend/design-system)** - Glassmorphism theme, utility classes, and UI components
 
 ### Architecture
 
 - **[Frontend Structure](#frontend-structure)** - Feature-based folder organization
 - **[Authentication Flow](#authentication-flow)** - Cookie-based JWT authentication with Zustand
-- **[Tech Stack Details](#tech-stack-details)** - Complete list of dependencies and their purposes
+- **[Tech Stack Details](#tech-stack-details)** - Complete list of dependencies
+
+---
+
+## Implementation Status
+
+### Pages & Features
+
+| Page/Feature | Status | Location | Notes |
+|-------------|--------|----------|-------|
+| **Login** | Done | `features/auth/` | Full Zod validation, httpOnly cookie auth, auto-redirect by role |
+| **App Layout** | Done | `components/layout/AppLayout.tsx` | Sticky header, navigation, user display, sign out |
+| **Auth Layout** | Done | `components/layout/AuthLayout.tsx` | Centered container for login |
+| **Protected Routes** | Done | `features/auth/components/ProtectedRoute.tsx` | Auth guard with loading state |
+| **Role Guard** | Done | `features/auth/components/RoleGuard.tsx` | Role-based route access |
+| **404 Page** | Done | `pages/NotFoundPage.tsx` | Not found handler |
+| **Dashboard** | Placeholder | `features/dashboard/pages/DashboardPage.tsx` | Welcome message only |
+| **Bookings** | Placeholder | `features/bookings/pages/BookingsPage.tsx` | Title and description only |
+| **User Management** | Placeholder | `features/users/pages/UsersPage.tsx` | Title and description only |
+| Vehicle Management | Not Started | - | No pages or components |
+| Chat System | Not Started | - | Backend fully built, needs UI |
+| Driver Shift Management | Not Started | - | Backend fully built (13 endpoints), needs UI |
+| Approval Management | Not Started | - | Backend fully built (7 endpoints), needs UI |
+| Notification Inbox | Not Started | - | Backend has basic endpoints |
+| Reports/Analytics | Not Started | - | No backend module either |
+| GPS Tracking Map | Not Started | - | Backend has read endpoints |
+| System Configuration | Not Started | - | No backend endpoints either |
+| Pickup Point Management | Not Started | - | No backend endpoints either |
+
+### Infrastructure (Done)
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| Auth Store | Done | Zustand store with localStorage hydration + /auth/me validation |
+| Axios Instance | Done | Base URL `/api/v1`, credentials, 401 interceptor |
+| Query Client | Done | TanStack Query with 5min stale, 10min gc, 1 retry |
+| UI Components | Done | Button, Card, Input, Label, Sonner (shadcn/ui) |
+| Design System | Done | Glassmorphism theme with oklch colors |
+| Type System | Done | Enums, user types, API response types |
+| Utilities | Done | Formatters (currency/date), UUID validation, cn() helper |
+| Status Styles | Done | Booking status color mapping |
+| Role Permissions | Done | Route permissions map, default routes by role |
+| Path Aliases | Done | `@/` prefix for imports |
+| E2E Testing | Done | Playwright with auth fixtures |
+
+---
 
 ## Frontend Structure
 
-The frontend follows a **feature-based architecture** for better scalability and maintainability:
+The frontend follows a **feature-based architecture** for scalability and maintainability:
 
 ```
 frontend/src/
 ├── components/
-│   ├── ui/              # shadcn/ui components (Button, Input, Card, etc.)
+│   ├── ui/              # shadcn/ui components (Button, Input, Card, Label, Sonner)
 │   └── layout/          # Layout components
 │       ├── AuthLayout.tsx       # Layout for login page
-│       └── AppLayout.tsx        # Main app layout with sidebar
+│       └── AppLayout.tsx        # Main app layout with navigation header
 │
 ├── config/
 │   ├── query-client.ts  # TanStack Query configuration
 │   └── routes.tsx       # Route configuration with role-based access
 │
 ├── constants/
-│   ├── roles.ts         # Role definitions (as const objects)
-│   └── statusStyles.ts  # Status badge color mappings
+│   ├── roles.ts         # Route permissions map + default routes by role
+│   └── statusStyles.ts  # Booking status badge color mappings
 │
 ├── features/            # Feature modules (each is self-contained)
 │   ├── auth/
-│   │   ├── components/  # LoginForm.tsx
-│   │   ├── hooks/       # useLogin.ts
-│   │   ├── pages/       # LoginPage.tsx
-│   │   ├── services/    # authService.ts (API calls)
-│   │   ├── store/       # authStore.ts (Zustand)
+│   │   ├── components/  # LoginForm, ProtectedRoute, RoleGuard
+│   │   ├── hooks/       # useAuth, useLogin
+│   │   ├── pages/       # LoginPage
+│   │   ├── services/    # auth.service.ts (login, logout, getMe)
+│   │   ├── store/       # auth.store.ts (Zustand)
 │   │   └── types/       # auth.types.ts
 │   │
 │   ├── dashboard/
-│   │   └── pages/       # DashboardPage.tsx
+│   │   └── pages/       # DashboardPage (placeholder)
 │   │
 │   ├── users/
-│   │   └── pages/       # UsersPage.tsx
+│   │   └── pages/       # UsersPage (placeholder)
 │   │
 │   └── bookings/
-│       └── pages/       # BookingsPage.tsx
+│       └── pages/       # BookingsPage (placeholder)
 │
 ├── lib/
 │   ├── axios.ts         # Axios instance with interceptors
-│   ├── utils.ts         # cn() helper for Tailwind
-│   ├── formatters.ts    # Date/currency formatters
-│   └── uuid.ts          # UUID validation helpers
+│   ├── utils.ts         # cn() helper for Tailwind class merging
+│   ├── formatters.ts    # formatCurrency, formatDate, formatDateTime
+│   └── uuid.ts          # isValidUuid, sanitizeUuid
 │
 ├── pages/
 │   └── NotFoundPage.tsx # 404 page
 │
 ├── types/
-│   ├── enums.ts         # Enums as const objects (UserRole, etc.)
-│   ├── user.types.ts    # User-related types
+│   ├── enums.ts         # UserRole, BookingStatus, VehicleStatus, etc.
+│   ├── user.types.ts    # User interface
 │   └── api.types.ts     # API response types
 │
 ├── App.tsx              # Root component with QueryClientProvider
@@ -89,14 +136,17 @@ frontend/src/
 └── index.css            # Global styles + glassmorphism theme
 ```
 
-### Why Feature-Based Architecture?
+### Current Routes
 
-| Benefit | Description |
-|---------|-------------|
-| **Co-location** | All code for a feature lives together (types, services, components, hooks) |
-| **Scalability** | Easy to add new features without affecting existing code |
-| **Maintainability** | Clear boundaries make it easy to find and update code |
-| **Reusability** | Shared code lives in `/components/ui`, `/lib`, `/types` |
+| Route | Access | Component | Status |
+|-------|--------|-----------|--------|
+| `/login` | Public | LoginPage | Done |
+| `/dashboard` | All authenticated | DashboardPage | Placeholder |
+| `/bookings` | ADMIN, PIC, EMPLOYEE | BookingsPage | Placeholder |
+| `/users` | ADMIN | UsersPage | Placeholder |
+| `*` | - | NotFoundPage | Done |
+
+---
 
 ## Authentication Flow
 
@@ -172,27 +222,19 @@ sequenceDiagram
 
 ### Protected Routes
 
-Routes are protected using `authStore` state:
+Routes are protected using `ProtectedRoute` + `RoleGuard` components:
 
 ```typescript
-// src/config/routes.tsx
-const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, user, isLoading } = useAuthStore();
-
-  if (isLoading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (allowedRoles && !allowedRoles.includes(user!.role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  return <>{children}</>;
-};
+// ProtectedRoute checks authentication
+// RoleGuard checks role-based access within protected routes
 ```
 
 **Role-Based Access:**
 - `/dashboard` - All authenticated users
 - `/users` - ADMIN only
-- `/bookings` - ADMIN, PIC
+- `/bookings` - ADMIN, PIC, EMPLOYEE
+
+---
 
 ## Tech Stack Details
 
@@ -200,53 +242,54 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react` | 19.0.0 | UI library with automatic memoization |
-| `react-dom` | 19.0.0 | DOM bindings |
-| `typescript` | 5.9.0 | Type safety |
-| `vite` | 6.0.7 | Build tool and dev server |
+| `react` | 19.2.0 | UI library with automatic memoization |
+| `react-dom` | 19.2.0 | DOM bindings |
+| `typescript` | 5.9.3 | Type safety |
+| `vite` | 7.2.4 | Build tool and dev server |
 
 ### Routing & State
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react-router` | 7.1.3 | Routing library |
-| `zustand` | 5.0.3 | Lightweight state management (auth store) |
+| `react-router-dom` | 6.30.3 | Client-side routing |
+| `zustand` | 5.0.10 | Lightweight state management (auth store) |
 
 ### Data Fetching
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `axios` | 1.7.9 | HTTP client with interceptors |
-| `@tanstack/react-query` | 5.62.14 | Server state management, caching, refetching |
+| `axios` | 1.13.4 | HTTP client with interceptors |
+| `@tanstack/react-query` | 5.90.20 | Server state management, caching |
 
 ### Forms & Validation
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `react-hook-form` | 7.54.2 | Performant form management |
-| `zod` | 4.0.0-beta.3 | Schema validation |
-| `@hookform/resolvers` | 3.10.0 | Zod resolver for React Hook Form |
+| `react-hook-form` | 7.71.1 | Performant form management |
+| `zod` | 4.3.6 | Schema validation |
+| `@hookform/resolvers` | 5.2.2 | Zod resolver for React Hook Form |
 
 ### UI Components
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `@radix-ui/*` | Various | Unstyled, accessible UI primitives |
-| `tailwindcss` | 4.0.0 | Utility-first CSS framework |
-| `tailwindcss-animate` | 1.0.7 | Animation utilities |
-| `tailwind-merge` | 3.0.1 | Merge Tailwind classes without conflicts |
+| `@radix-ui/*` | 1.4.3 | Unstyled, accessible UI primitives |
+| `tailwindcss` | 4.1.18 | Utility-first CSS framework |
+| `tailwind-merge` | 3.4.0 | Merge Tailwind classes without conflicts |
 | `clsx` | 2.1.1 | Conditional className utility |
 | `class-variance-authority` | 0.7.1 | Type-safe component variants |
-| `lucide-react` | 0.468.0 | Icon library |
-| `sonner` | 1.7.3 | Toast notifications |
+| `lucide-react` | 0.563.0 | Icon library |
+| `sonner` | 2.0.7 | Toast notifications |
 
 ### Development Tools
 
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `@vitejs/plugin-react-swc` | 3.7.2 | Fast React refresh with SWC |
-| `eslint` | 9.18.0 | Code linting |
-| `prettier` | 3.4.2 | Code formatting |
+| `eslint` | 9.39.1 | Code linting |
+| `@playwright/test` | 1.58.1 | E2E testing |
+
+---
 
 ## Path Aliases
 
@@ -260,10 +303,6 @@ import { Button } from '../../components/ui/button';
 import { Button } from '@/components/ui/button';
 ```
 
-**Configuration:**
-- `tsconfig.json` - TypeScript path mapping
-- `vite.config.ts` - Vite resolver alias
-
 ## Environment Variables
 
 Frontend environment variables are prefixed with `VITE_`:
@@ -272,31 +311,16 @@ Frontend environment variables are prefixed with `VITE_`:
 VITE_API_URL=http://localhost:3001/api/v1
 ```
 
-**Access in code:**
-```typescript
-const API_URL = import.meta.env.VITE_API_URL;
-```
-
 ## Development Workflow
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
-
-# Lint code
-pnpm lint
-
-# Format code
-pnpm format
+pnpm install    # Install dependencies
+pnpm dev        # Start development server
+pnpm build      # Build for production
+pnpm preview    # Preview production build
+pnpm lint       # Lint code
+pnpm format     # Format code
+pnpm test:e2e   # Run Playwright tests
 ```
 
 ## Design Principles
@@ -306,10 +330,7 @@ pnpm format
 React 19 Compiler handles memoization automatically:
 
 ```typescript
-// ❌ Don't use useCallback/useMemo (React 19 handles this)
-const handleSubmit = useCallback(() => { ... }, [deps]);
-
-// ✅ Just write normal functions
+// DO NOT use useCallback/useMemo (React 19 handles this)
 const handleSubmit = () => { ... };
 ```
 
@@ -318,7 +339,6 @@ const handleSubmit = () => { ... };
 Use `as const` objects instead of TypeScript `enum` (due to TS 5.9 `erasableSyntaxOnly`):
 
 ```typescript
-// ✅ Correct
 export const UserRole = {
   ADMIN: 'ADMIN',
   PIC: 'PIC',
@@ -326,75 +346,32 @@ export const UserRole = {
 } as const;
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
-
-// ❌ Avoid
-enum UserRole {
-  ADMIN = 'ADMIN',
-  PIC = 'PIC',
-}
 ```
 
-### 3. Form Handling
+### 3. Styling Conventions
 
-Use centralized form hooks for consistency:
+Follow the glassmorphism design system:
 
-```typescript
-// src/hooks/forms/useFormSubmit.ts
-import { useFormSubmit } from '@/hooks/forms/useFormSubmit';
-
-const { handleSubmit, isSubmitting } = useFormSubmit({
-  onSubmit: async (data) => {
-    await createBooking(data);
-  },
-  successMessage: 'Booking created successfully',
-  errorMessage: 'Failed to create booking',
-});
-```
-
-### 4. Styling Conventions
-
-Follow the design system guidelines:
-
-```typescript
-// Use existing glassmorphism utilities
+```tsx
 <div className="glass-card p-4">
   {/* Content */}
 </div>
 
-// Use responsive Tailwind classes
 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-  {/* Form fields */}
+  {/* Responsive form fields */}
 </div>
 ```
 
 ## Security Considerations
 
-### XSS Prevention
-
-- All user input is automatically escaped by React
-- httpOnly cookies prevent JavaScript access to JWT tokens
-- No `dangerouslySetInnerHTML` usage
-
-### CSRF Protection
-
-- `sameSite: 'strict'` cookie attribute prevents CSRF
-- CORS configured to allow only trusted origins
-
-### Authentication State
-
-```typescript
-// Auth state is managed securely in Zustand store
-interface AuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-  isLoading: boolean;
-  checkAuth: () => Promise<void>;
-  logout: () => Promise<void>;
-}
-```
+- **XSS Prevention:** React auto-escaping + httpOnly cookies prevent token theft
+- **CSRF Protection:** `sameSite: 'strict'` cookie attribute
+- **CORS:** Configured to allow only trusted origins with `credentials: true`
+- **No `dangerouslySetInnerHTML`** usage
 
 ## Related Documentation
 
-- [Design System](./design-system.md)
+- [Design System](/docs/frontend/design-system)
+- [Implementation Status](../implementation-status.md)
+- [Backend API](/docs/backend/)
 - [Backend Security](../backend/security.md)
-- [System Workflows](../system-workflows.md)

@@ -4,6 +4,11 @@ const sidebars: SidebarsConfig = {
   docsSidebar: [
     {
       type: 'doc',
+      id: 'implementation-status',
+      label: 'Implementation Status',
+    },
+    {
+      type: 'doc',
       id: 'business-flows',
       label: 'Business Flows',
     },
