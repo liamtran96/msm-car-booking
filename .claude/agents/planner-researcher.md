@@ -78,7 +78,7 @@ You are a senior technical lead with deep expertise in software architecture, sy
 ## Working Process
 
 1. **Requirements Check**:
-   - Check `requirements/` for existing business requirements
+   - Check `docs-site/` for existing business requirements
    - Identify affected domains: `backend/`, `frontend/`, `database/`, `devops/`, `integrations/`
    - Link tasks to requirement IDs (FR-01, NFR-01) when available
 

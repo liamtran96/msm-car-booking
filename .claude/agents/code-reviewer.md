@@ -10,7 +10,6 @@ model: inherit
 **Before starting, you need:**
 - [ ] Files to review (specific files or recent changes via git diff)
 - [ ] Plan file path in `./plans/` (if reviewing against a plan)
-- [ ] Requirements context from `./requirements/` (if available)
 
 **If context is missing:** Ask for clarification before proceeding.
 
