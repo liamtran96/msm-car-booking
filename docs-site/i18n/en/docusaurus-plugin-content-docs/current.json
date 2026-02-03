@@ -1,15 +1,27 @@
 {
-  "sidebar.docsSidebar.doc.Business Flows": {
-    "message": "Business Flows",
-    "description": "The label for doc Business Flows in sidebar docsSidebar"
+  "sidebar.docsSidebar.doc.Software Requirements Specification": {
+    "message": "Software Requirements Specification",
+    "description": "The label for doc Software Requirements Specification in sidebar docsSidebar"
   },
   "sidebar.docsSidebar.doc.System Workflows": {
     "message": "System Workflows",
     "description": "The label for doc System Workflows in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.doc.Database Models": {
-    "message": "Database Models",
-    "description": "The label for doc Database Models in sidebar docsSidebar"
+  "sidebar.docsSidebar.doc.Database Schema": {
+    "message": "Database Schema",
+    "description": "The label for doc Database Schema in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.User Guide": {
+    "message": "User Guide",
+    "description": "The label for doc User Guide in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.Glossary": {
+    "message": "Glossary",
+    "description": "The label for doc Glossary in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.Coding Standards": {
+    "message": "Coding Standards",
+    "description": "The label for doc Coding Standards in sidebar docsSidebar"
   },
   "sidebar.docsSidebar.category.DevOps": {
     "message": "DevOps",

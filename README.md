@@ -168,9 +168,9 @@ See [Implementation Status](docs-site/docs/implementation-status.md) for detaile
 
 ## Documentation
 
-- **[Business Flows](docs-site/docs/business-flows.md)** - Functional requirements and business rules
+- **[Software Requirements Specification](docs-site/docs/software-requirements-specification.md)** - Functional requirements and business rules
 - **[System Workflows](docs-site/docs/system-workflows.md)** - Visual flowcharts (Mermaid)
-- **[Database Models](docs-site/docs/database-models.mdx)** - Schema documentation with ERD
+- **[Database Schema](docs-site/docs/database-schema.mdx)** - Schema documentation with ERD
 - **[Architecture](docs-site/docs/architecture/index.md)** - System architecture and deployment
 - **[Backend](docs-site/docs/backend/index.md)** - API endpoint inventory and module reference
 - **[Frontend](docs-site/docs/frontend/index.md)** - React architecture and design system

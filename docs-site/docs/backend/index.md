@@ -258,5 +258,5 @@ pnpm db:reset
 
 - [Implementation Status](../implementation-status.md)
 - [DevOps & Deployment](../devops/index.md)
-- [Business Flows](../business-flows.md)
+- [Software Requirements Specification](../software-requirements-specification.md)
 - [System Workflows](../system-workflows.md)

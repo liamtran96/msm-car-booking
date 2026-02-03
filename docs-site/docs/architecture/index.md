@@ -680,8 +680,8 @@ limit_conn conn 20;
 ## Related Documentation
 
 - [Implementation Status](../implementation-status.md) - Feature gap analysis and implementation tracking
-- [Database Models](/docs/database-models) - Complete schema documentation
-- [Business Flows](/docs/business-flows) - Business process documentation
+- [Database Schema](/docs/database-schema) - Complete schema documentation
+- [Software Requirements Specification](/docs/software-requirements-specification) - Business process documentation
 - [System Workflows](/docs/system-workflows) - Visual workflow diagrams
 - [Backend API](/docs/backend/) - Endpoint inventory and module reference
 - [DevOps Guide](/docs/devops) - Deployment and operations

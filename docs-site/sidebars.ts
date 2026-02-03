@@ -9,8 +9,8 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'business-flows',
-      label: 'Business Flows',
+      id: 'software-requirements-specification',
+      label: 'Software Requirements Specification',
     },
     {
       type: 'doc',
@@ -19,8 +19,23 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'database-models',
-      label: 'Database Models',
+      id: 'database-schema',
+      label: 'Database Schema',
+    },
+    {
+      type: 'doc',
+      id: 'user-guide',
+      label: 'User Guide',
+    },
+    {
+      type: 'doc',
+      id: 'glossary',
+      label: 'Glossary',
+    },
+    {
+      type: 'doc',
+      id: 'coding-standards',
+      label: 'Coding Standards',
     },
     {
       type: 'category',
@@ -67,6 +82,7 @@ const sidebars: SidebarsConfig = {
         'backend/security',
         'backend/database-setup',
         'backend/vehicle-matching-algorithm',
+        'backend/api-documentation',
       ],
     },
     {

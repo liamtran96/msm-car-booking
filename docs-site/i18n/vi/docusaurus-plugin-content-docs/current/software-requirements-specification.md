@@ -1,6 +1,6 @@
 ---
-id: business-flows
-title: Quy trình nghiệp vụ
+id: software-requirements-specification
+title: Đặc tả yêu cầu phần mềm
 sidebar_position: 1
 ---
 

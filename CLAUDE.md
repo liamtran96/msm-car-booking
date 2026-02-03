@@ -173,7 +173,7 @@ You are a senior full-stack developer with expertise in writing production-quali
 #### 1. Code Implementation
 - **CRITICAL:** Follow the workflow system in `.claude/workflows/` - start with `00-main.md`
 - **CRITICAL:** Before implementing any feature, READ the documentation in `docs-site/docs/` first to understand:
-  - Business logic and workflows (`business-flows.md`, `system-workflows.md`)
+  - Business logic and workflows (`software-requirements-specification.md`, `system-workflows.md`)
   - Backend patterns (`backend/vehicle-matching-algorithm.md`)
   - Frontend design system (`frontend/design-system.md`)
   - DevOps setup (`devops/`)
@@ -346,7 +346,7 @@ pnpm format             # Run Prettier
    - Do NOT keep old plan files cluttering the repository
 
 2. **Update Related Documentation:**
-   - Update `docs-site/docs/business-flows.md` if business processes changed
+   - Update `docs-site/docs/software-requirements-specification.md` if business processes changed
    - Update `CLAUDE.md` if new features or rules were added
    - Update `README.md` if technology stack or setup instructions changed
    - Delegate to `docs-manager` agent to ensure all docs are synchronized
@@ -502,8 +502,8 @@ When a new migration is created, assess whether it affects existing seed data be
 
 **Update documentation when:**
 - **Tech stack changes** → Update README.md technology section
-- **Business process changes** → Update `docs-site/docs/business-flows.md`
-- **Database schema changes** → Update `docs-site/docs/database-models.mdx` (single source of truth for schema)
+- **Business process changes** → Update `docs-site/docs/software-requirements-specification.md`
+- **Database schema changes** → Update `docs-site/docs/database-schema.mdx` (single source of truth for schema)
 - **API/service changes** → Update `docs-site/docs/backend/` and business flows
 - **Feature additions/removals** → Update README.md, CLAUDE.md, and business flows
 

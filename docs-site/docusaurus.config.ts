@@ -136,16 +136,16 @@ const config: Config = {
           title: "Documentation",
           items: [
             {
-              label: "Business Flows",
-              to: "/docs/business-flows",
+              label: "Software Requirements Specification",
+              to: "/docs/software-requirements-specification",
             },
             {
               label: "System Workflows",
               to: "/docs/system-workflows",
             },
             {
-              label: "Database Models",
-              to: "/docs/database-models",
+              label: "Database Schema",
+              to: "/docs/database-schema",
             },
           ],
         },

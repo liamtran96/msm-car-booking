@@ -1,15 +1,27 @@
 {
-  "sidebar.docsSidebar.doc.Business Flows": {
-    "message": "Quy trình nghiệp vụ",
-    "description": "The label for doc Business Flows in sidebar docsSidebar"
+  "sidebar.docsSidebar.doc.Software Requirements Specification": {
+    "message": "Đặc tả yêu cầu phần mềm",
+    "description": "The label for doc Software Requirements Specification in sidebar docsSidebar"
   },
   "sidebar.docsSidebar.doc.System Workflows": {
     "message": "Luồng hệ thống",
     "description": "The label for doc System Workflows in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.doc.Database Models": {
-    "message": "Mô hình CSDL",
-    "description": "The label for doc Database Models in sidebar docsSidebar"
+  "sidebar.docsSidebar.doc.Database Schema": {
+    "message": "Lược đồ Cơ sở dữ liệu",
+    "description": "The label for doc Database Schema in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.User Guide": {
+    "message": "Hướng dẫn sử dụng",
+    "description": "The label for doc User Guide in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.Glossary": {
+    "message": "Thuật ngữ",
+    "description": "The label for doc Glossary in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.doc.Coding Standards": {
+    "message": "Tiêu chuẩn lập trình",
+    "description": "The label for doc Coding Standards in sidebar docsSidebar"
   },
   "sidebar.docsSidebar.category.DevOps": {
     "message": "DevOps",

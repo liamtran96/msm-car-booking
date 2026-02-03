@@ -16,7 +16,7 @@ function HomepageHeader() {
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-          <Link className="button button--primary button--lg" to="/docs/business-flows">
+          <Link className="button button--primary button--lg" to="/docs/software-requirements-specification">
             Get Started
           </Link>
           <Link
@@ -58,9 +58,9 @@ export default function Home(): ReactNode {
         <div className="container">
           <div className={styles.features}>
             <FeatureCard
-              title="Business Flows"
+              title="Software Requirements Specification"
               description="Understand core business processes: orders, trips, fleet management, and cost tracking."
-              link="/docs/business-flows"
+              link="/docs/software-requirements-specification"
             />
             <FeatureCard
               title="System Workflows"

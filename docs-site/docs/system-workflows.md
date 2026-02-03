@@ -57,7 +57,7 @@ flowchart TB
     BOOKING --> NOTIFY
 ```
 
-> **Database Models:** For complete database schema, entities, and table relationships, see [Database Models](./database-models.mdx).
+> **Database Schema:** For complete database schema, entities, and table relationships, see [Database Schema](./database-schema.mdx).
 
 ---
 

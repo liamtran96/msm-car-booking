@@ -53,5 +53,5 @@ pnpm build
 ## Tài liệu Liên quan
 
 - [DevOps & Triển khai](../devops/index.md)
-- [Luồng Nghiệp vụ](../business-flows.md)
+- [Đặc tả yêu cầu phần mềm](../software-requirements-specification.md)
 - [Quy trình Hệ thống](../system-workflows.md)
