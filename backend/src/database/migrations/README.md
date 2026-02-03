@@ -39,16 +39,6 @@ pnpm schema:sync
 ```
 This creates tables from entities and applies all migrations.
 
-**Option 2: Manual SQL + Migrations**
-```bash
-# Create initial schema from legacy SQL
-docker exec -i msm_postgres psql -U postgres -d msm_car_booking < backend/database/migrations/000_initial_schema.sql
-
-# Then run TypeORM migrations
-cd backend
-pnpm migration:run
-```
-
 ### Applying New Migrations
 
 When new migration files are added:
@@ -185,4 +175,3 @@ pnpm migration:run
 - [TypeORM Migrations Guide](https://typeorm.io/migrations)
 - [PostgreSQL Index Types](https://www.postgresql.org/docs/current/indexes-types.html)
 - [pg_trgm Extension](https://www.postgresql.org/docs/current/pgtrgm.html)
-- Legacy SQL migrations: `/backend/database/migrations/`

@@ -244,5 +244,4 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO msm_app_user
 ## Related Documentation
 
 - [VPS Deployment Guide](../../docs-site/docs/devops/08-vps-deployment-guide.md)
-- [Database Setup & Migrations (Docusaurus)](../../docs-site/docs/backend/database-setup.md)
 - [Backend README](../README.md)
